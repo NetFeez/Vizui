@@ -1,7 +1,7 @@
 /**
  * @author NetFeez <netfeez.dev@gmail.com>.
  * @description Adds a class to create a menu.
- * @module my.vizui
+ * @module vizui
  * @license Apache-2.0
  */
 

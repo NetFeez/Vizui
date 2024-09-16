@@ -1,7 +1,7 @@
 /**
  * @author NetFeez <netfeez.dev@gmail.com>.
  * @description Vizui is a module to create web applications SPA with js/ts.
- * @module my.vizui
+ * @module vizui
  * @license Apache-2.0
  */
 import Element from "../Element.js";

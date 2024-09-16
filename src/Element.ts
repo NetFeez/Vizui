@@ -1,7 +1,7 @@
 /**
  * @author NetFeez <netfeez.dev@gmail.com>.
  * @description Adds a simple way to create HTML elements through JS.
- * @module my.vizui
+ * @module vizui
  * @license Apache-2.0
  */
 

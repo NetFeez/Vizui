@@ -1,7 +1,7 @@
 /**
  * @author NetFeez <netfeez.dev@gmail.com>.
  * @description Adds the router to the vizui.
- * @module my.vizui
+ * @module vizui
  * @license Apache-2.0
  */
 

@@ -1,7 +1,7 @@
 /**
  * @author NetFeez <netfeez.dev@gmail.com>.
  * @description adds a class to create components with js/ts.
- * @module my.vizui
+ * @module vizui
  * @license Apache-2.0
  */
 

@@ -1,5 +1,5 @@
 {
-  "name": "my.vizui",
+  "name": "vizui",
   "version": "1.0.0",
   "description": "a simple module to create single page applications",
   "main": "build/Vizui.js",
@@ -16,6 +16,17 @@
     "email": "netfeez.dev@gmail.com",
     "url": "https://NetFeez.github.io"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NetFeez/Vizui"
+  },
+  "files": [
+    "src/",
+    "changes.md",
+    "LICENSE",
+    "README.md",
+    "tsconfig.json"
+  ],
   "license": "Apache-2.0",
   "devDependencies": {
     "typescript": "^5.6.2"
