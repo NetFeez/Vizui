@@ -4,8 +4,10 @@
   "description": "a simple module to create single page applications",
   "main": "build/Vizui.js",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "compile": "rm build/* -R && tsc",
+    "dev.publish": "npm run compile && npm publish --tag dev",
+    "publish": "npm run compile && npm publish"
   },
   "keywords": [
     "Vizui",
@@ -21,11 +23,11 @@
     "url": "https://github.com/NetFeez/Vizui"
   },
   "files": [
-    "src/",
+    "build/",
+    ".gitignore",
     "changes.md",
     "LICENSE",
-    "README.md",
-    "tsconfig.json"
+    "README.md"
   ],
   "license": "Apache-2.0",
   "devDependencies": {
