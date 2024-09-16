@@ -20,9 +20,9 @@ Therefore, it may not follow the best practices or have the best documentation. 
 
 
 **Future corrections**
-- [ ] **In progress** Documenting classes and functions.
-- [ ] **In progress** Translating the current documentation to English.
-- [ ] Rename variables, functions, classes, and descriptions to English.
+- [x] Documenting classes and functions.
+- [x] Translating the current documentation to English.
+- [x] Rename variables, functions, classes, and descriptions to English.
 - [ ] Find and correct bad practices.
 
 
@@ -39,20 +39,20 @@ That's all for now, [NetFeez](https://NetFeez.github.io) signing off.
   npm install my.vizui
   ```
 - import in your project
- ```ts
- import Vizui from "my.vizui";
- ```
+  ```ts
+  import Vizui from "my.vizui";
+  ```
 
 **using github package**
 - download the package in [github packages](https://github.com/NetFeez/Vizui/packages)
 - unzip the package and paste the files in your project
-  ´´´text
+  ```text
   - project file
   | - Vizui  // the Vizui module
   | - all files of the project
   | - Vizui.js // the main file of the module
   - main.js // your main file
-  ´´´
+  ```
 - import in your project
   - **Recommended** using js/ts file in module mode
    ```ts
