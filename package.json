@@ -1,0 +1,23 @@
+{
+  "name": "my.vizui",
+  "version": "1.0.0",
+  "description": "a simple module to create single page applications",
+  "main": "build/Vizui.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "Vizui",
+    "SPA"
+  ],
+  "author": {
+    "name": "NetFeez",
+    "email": "netfeez.dev@gmail.com",
+    "url": "https://NetFeez.github.io"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  }
+}
