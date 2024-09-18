@@ -26,42 +26,42 @@ export class Element<T extends keyof Element.Type = any> {
     /**
      * get the scroll height of the element.
      * @returns The scroll height of the element.
-    */
+     */
     public get scrollHeight(): number {
         return this.HTMLElement.scrollHeight;
     }
     /**
      * get the scroll width of the element.
      * @returns The scroll width of the element.
-    */
+     */
     public get scrollWidth(): number {
         return this.HTMLElement.scrollWidth;
     }
     /**
      * get the client height of the element.
      * @returns The client height of the element.
-    */
+     */
     public get clientHeight(): number {
         return this.HTMLElement.clientHeight;
     }
     /**
      * get the client width of the element.
      * @returns The client width of the element.
-    */
+     */
     public get clientWidth(): number {
         return this.HTMLElement.clientWidth;
     }
     /**
      * get the offset height of the element.
      * @returns The offset height of the element.
-    */
+     */
     public get offsetHeight(): number {
         return this.HTMLElement.offsetHeight;
     }
     /**
      * get the offset width of the element.
      * @returns The offset width of the element.
-    */
+     */
     public get offsetWidth(): number {
         return this.HTMLElement.offsetWidth;
     }
@@ -69,7 +69,7 @@ export class Element<T extends keyof Element.Type = any> {
      * look when the element is added or removed to the DOM.
      * @param type The type of look.
      * @param callback The callback function.
-    */
+     */
     public look(type: 'add' | 'remove', callback: Element.lookCallBack): Element<T> {
         const observer = new MutationObserver((mutationsList, observer) => {
             for (const mutation of mutationsList) {
@@ -89,7 +89,7 @@ export class Element<T extends keyof Element.Type = any> {
     /**
      * Check if the element contains the child.
      * @param element The element to check.
-    */
+     */
     public contains(element: Element.AcceptedTypes): boolean {
         if (element instanceof HTMLElement) return this.HTMLElement.contains(element);
         else if (element instanceof Element) return this.HTMLElement.contains(element.HTMLElement);
@@ -111,7 +111,7 @@ export class Element<T extends keyof Element.Type = any> {
         return this;
     }
     /**
-         * Replaces this element with another.
+     * Replaces this element with another.
      * @param element The element that will replace this one.
      */
     public replaceWith(element: Element.ChildType): Element<T> {
@@ -126,7 +126,7 @@ export class Element<T extends keyof Element.Type = any> {
     /**
      * Clones this element.
      * @returns The cloned element.
-    */
+     */
     public clone(): Element<T> {
         const newHtmlElement = this.HTMLElement.cloneNode(true) as Element.Type[T];
         return new Element(newHtmlElement);
@@ -134,7 +134,7 @@ export class Element<T extends keyof Element.Type = any> {
     /**
      * Removes this element from the DOM.
      * @returns The element that was removed.
-    */
+     */
     public remove(): Element<T> {
         this.HTMLElement.remove();
         return this;
@@ -176,9 +176,20 @@ export class Element<T extends keyof Element.Type = any> {
      * @param eventName The name of the event to listen for.
      * @param listener The function to call when the event occurs.
      * @param option The options for the event listener.
-    */
+     */
     public addEventListener<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], option?: Element.Events.Options): Element<T> {
-        this.on<E>(eventName, listener, option);
+        this.on(eventName, listener, option);
+        return this;
+    }
+    /**
+     * Removes a previously added event listener from the element.
+     * @param eventName - The name of the event whose listener should be removed.
+     * @param listener - The function to remove, which was previously added as a listener for the event.
+     * @param option - Optional configuration to match the options used when adding the event listener.
+     * @returns The current element instance to allow method chaining.
+     */
+    public removeEventListener<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], option?: Element.Events.Options): Element<T> {
+        this.off(eventName, listener as EventListener, option);
         return this;
     }
     /**
@@ -186,9 +197,20 @@ export class Element<T extends keyof Element.Type = any> {
      * @param eventName The name of the event to listen for.
      * @param listener The function to call when the event occurs.
      * @param option The options for the event listener.
-    */
+     */
     public on<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], option?: Element.Events.Options): Element<T> {
         this.HTMLElement.addEventListener(eventName, listener as EventListener, option);
+        return this;
+    }
+    /**
+     * Removes a previously added event listener from the element.
+     * @param eventName - The name of the event whose listener should be removed.
+     * @param listener - The function to remove, which was previously added as a listener for the event.
+     * @param option - Optional configuration to match the options used when adding the event listener.
+     * @returns The current element instance to allow method chaining.
+     */
+    public off<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], option?: Element.Events.Options): Element<T> {
+        this.HTMLElement.removeEventListener(eventName, listener as EventListener, option);
         return this;
     }
     /**
@@ -207,7 +229,6 @@ export class Element<T extends keyof Element.Type = any> {
     public getAttribute(name: string): string | null {
         return this.HTMLElement.getAttribute(name);
     }
-
     /**
      * set multiple attributes on the element.
      * @param attributes The attributes to set.
