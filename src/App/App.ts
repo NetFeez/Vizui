@@ -179,7 +179,7 @@ export namespace App {
     export interface WorkerOptions {
         type?: 'module' | 'classic';
         scope?: string;
-        updateViaCache: 'all' | 'imports' | 'none';
+        updateViaCache?: 'all' | 'imports' | 'none';
     }
 }
 export default App;
