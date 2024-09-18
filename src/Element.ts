@@ -38,6 +38,13 @@ export class Element<T extends keyof Element.Type = any> {
         return this.HTMLElement.scrollWidth;
     }
     /**
+     * get the scroll top of the element.
+     * @returns The scroll top of the element.
+    */
+    public get scrollTop(): number {
+        return this.HTMLElement.scrollTop
+    }
+    /**
      * get the client height of the element.
      * @returns The client height of the element.
      */
