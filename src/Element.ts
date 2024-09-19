@@ -42,7 +42,14 @@ export class Element<T extends keyof Element.Type = any> {
      * @returns The scroll top of the element.
     */
     public get scrollTop(): number {
-        return this.HTMLElement.scrollTop
+        return this.HTMLElement.scrollTop;
+    }
+    /**
+     * set the scroll top of the element.
+     * @returns The scroll top of the element.
+    */
+    public set scrollTop(value: number) {
+        this.HTMLElement.scrollTop = value;
     }
     /**
      * get the client height of the element.
