@@ -7,12 +7,15 @@
 
 
 import Component from "./Component.js";
+import DomObserver from "./DomObserver.js";
 
 export class Element<T extends keyof Element.Type = any> {
     /** The document body */
     public static body: HTMLElement = document.body;
     /** The document head */
     public static head: HTMLElement = document.head;
+    /** The DomObserver for this element */
+    public readonly observer: DomObserver<this>; 
     /** The main element */
     public HTMLElement: Element.Type[T];
     /**
@@ -22,6 +25,7 @@ export class Element<T extends keyof Element.Type = any> {
     public constructor(element: Element.Type[T])  {
         if (!(element instanceof HTMLElement)) throw new Error('the element is not a HTMLElement');
         this.HTMLElement = element;
+        this.observer = new DomObserver(this);
     }
     /**
      * get the scroll height of the element.
@@ -78,27 +82,6 @@ export class Element<T extends keyof Element.Type = any> {
      */
     public get offsetWidth(): number {
         return this.HTMLElement.offsetWidth;
-    }
-    /**
-     * look when the element is added or removed to the DOM.
-     * @param type The type of look.
-     * @param callback The callback function.
-     */
-    public look(type: 'add' | 'remove', callback: Element.lookCallBack): Element<T> {
-        const observer = new MutationObserver((mutationsList, observer) => {
-            for (const mutation of mutationsList) {
-                if (mutation.type === 'childList') {
-                    const nodes = type === 'add' ? mutation.addedNodes : mutation.removedNodes;
-                    if ([...nodes].some(node => node.contains(this.HTMLElement))) {
-                        callback(observer);
-                        observer.disconnect();
-                        break;
-                    }
-                }
-            }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-        return this;
     }
     /**
      * Check if the element contains the child.
@@ -348,7 +331,6 @@ export namespace Element {
         events?: Partial<Element.Events>;
         childs?: Element.ChildType[];
     };
-    export type lookCallBack = (observer: MutationObserver) => void;
 }
 
 export default Element;
