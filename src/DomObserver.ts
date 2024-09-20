@@ -1,7 +1,9 @@
 import Element from "./Element.js";
 import Events from "./Events.js";
 
-export class DomObserver<T extends Element> extends Events {
+export class DomObserver<T extends Element> extends Events<{
+    [name in DomObserver.Type]: DomObserver.Listener<T>
+}> {
     public mutation: MutationObserver | null;
     public intersection: IntersectionObserver | null;
     public constructor(
@@ -39,13 +41,13 @@ export class DomObserver<T extends Element> extends Events {
             else this.dispatch('hidden', this.element);
         }
     }
-    private isMutationEvent(type: DOMObserver.Type): boolean {
+    private isMutationEvent(type: DomObserver.Type): boolean {
         return type === 'add' || type === 'remove';
     }
-    private isIntersectionEvent(type: DOMObserver.Type): boolean {
+    private isIntersectionEvent(type: DomObserver.Type): boolean {
         return type === 'visible' || type === 'hidden';
     }
-    public on(type: DOMObserver.Type, listener: DOMObserver.Listener<T>) {
+    public on(type: DomObserver.Type, listener: DomObserver.Listener<T>) {
         super.on(type, listener);
         if (this.isMutationEvent(type)) {
             if (!this.mutation) {
@@ -57,7 +59,7 @@ export class DomObserver<T extends Element> extends Events {
             this.intersection.observe(this.element.HTMLElement);
         }
     }
-    public off(type: DOMObserver.Type, listener: DOMObserver.Listener<T>) {
+    public off(type: DomObserver.Type, listener: DomObserver.Listener<T>) {
         super.off(type, listener);
         if (this.isMutationEvent(type)) {
             if (this.mutationCount() === 0 && this.mutation) {
@@ -73,7 +75,7 @@ export class DomObserver<T extends Element> extends Events {
     }
 }
 
-export namespace DOMObserver {
+export namespace DomObserver {
     export type Listener<T> = (element: T) => void;
     export type MutationType = 'add' | 'remove';
     export type IntersectionType = 'visible' | 'hidden';

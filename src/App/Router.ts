@@ -7,7 +7,7 @@
 
 import Events from "../Events.js";
 
-export class Router extends Events {
+export class Router extends Events<Router.EventMap> {
     private static instance: Router;
     private index: number = 0;
     private history: string[] = [];
@@ -98,16 +98,14 @@ export class Router extends Events {
         this.dispatch('next');
         this.dispatch('change');
     }
-    public on(EventName: 'change', CallBack: Events.CallBack): void;
-    public on(EventName: 'push', CallBack: Events.CallBack): void;
-    public on(EventName: 'back', CallBack: Events.CallBack): void;
-    public on(EventName: 'next', CallBack: Events.CallBack): void;
-    public on(EventName: string, CallBack: Events.CallBack): void { super.on(EventName, CallBack); }
-    public off(EventName: 'change', CallBack: Events.CallBack): void;
-    public off(EventName: 'push', CallBack: Events.CallBack): void;
-    public off(EventName: 'back', CallBack: Events.CallBack): void;
-    public off(EventName: 'next', CallBack: Events.CallBack): void;
-    public off(EventName: string, CallBack: Events.CallBack): void { super.off(EventName, CallBack); }
+}
+
+export namespace Router {
+    export type EventMap = {
+        [name in (
+            'change' | 'push' | 'back' | 'next'
+        )]: Events.Listener
+    }
 }
 
 export default Router

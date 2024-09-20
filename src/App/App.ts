@@ -152,17 +152,17 @@ export class App extends Events {
         this.dispatch('render');
     }
 
-    on(EventName: 'render', CallBack: Events.CallBack): void;
-    on(EventName: 'routing', CallBack: Events.CallBack): void;
-    on(EventName: 'routed', CallBack: App.routedCallBack): void;
-    on(EventName: string, CallBack: Events.CallBack): void {
-        super.on(EventName, CallBack);
+    on(name: 'render', listener: Events.Listener): void;
+    on(name: 'routing', listener: Events.Listener): void;
+    on(name: 'routed', listener: App.routedCallBack): void;
+    on(name: string, listener: Events.Listener): void {
+        super.on(name, listener);
     }
-    off(EventName: 'render', CallBack: Events.CallBack): void;
-    off(EventName: 'routing', CallBack: Events.CallBack): void;
-    off(EventName: 'routed', CallBack: App.routedCallBack): void;
-    off(EventName: string, CallBack: Events.CallBack): void {
-        super.off(EventName, CallBack);
+    off(name: 'render', listener: Events.Listener): void;
+    off(name: 'routing', listener: Events.Listener): void;
+    off(name: 'routed', listener: App.routedCallBack): void;
+    off(name: string, listener: Events.Listener): void {
+        super.off(name, listener);
     }
 }
 

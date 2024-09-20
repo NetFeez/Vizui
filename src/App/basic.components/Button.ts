@@ -1,7 +1,7 @@
 import Element from "../../Element.js";
 import Component from "../../Component.js";
 
-export class Button extends Component<'button'> {
+export class Button extends Component<'button', Element.Events> {
     protected component: Element<"button">;
     public constructor(
         protected value: string,
@@ -15,10 +15,6 @@ export class Button extends Component<'button'> {
     }
     public get text(): string { return this.value }
     public set text(value: string) { this.value = value; this.component.text(value); }
-    on<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], option?: Element.Events.Options): this {
-        this.component.on(eventName, listener, option);
-        return this;
-    }
 }
 
 export namespace Button {
