@@ -8,7 +8,6 @@
 import Element from '../Element.js';
 import Button from '../App/basic.components/Button.js';
 import App from './App.js';
-import Component from 'Component.js';
 
 export class Menu {
     private root: Element<'nav'>;
