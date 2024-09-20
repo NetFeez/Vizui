@@ -70,7 +70,10 @@ export class Events<eventMap extends Events.EventMap = Events.EventMap> {
         const listeners = this.listeners[name];
         const onceListeners = this.onceListeners[name];
         if (listeners) listeners.forEach(listener => listener(...args));
-        if (onceListeners) onceListeners.forEach(listener => listener(...args));
+        if (onceListeners) onceListeners.forEach(listener => {
+            listener(...args);
+            onceListeners.delete(listener);
+        });
     }
     /**
      * Returns the number of callbacks of an event.
