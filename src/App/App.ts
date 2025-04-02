@@ -105,7 +105,7 @@ export class App extends Events {
      * Render the root element of the application.
      * @param content The content to render.
      */
-    public renderRoot(...content: Element[]): void {
+    public renderRoot(...content: Element.ChildType[]): void {
         this.root.clean();
         this.root.append(...content);
     }
