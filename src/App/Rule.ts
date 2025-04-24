@@ -1,7 +1,7 @@
 /**
  * @author NetFeez <netfeez.dev@gmail.com>.
  * @description add the rule class to the app.
- * @module my.vizui
+ * @module vizui
  * @license Apache-2.0
 */
 

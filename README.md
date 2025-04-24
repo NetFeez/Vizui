@@ -36,11 +36,11 @@ That's all for now, [NetFeez](https://NetFeez.github.io) signing off.
 **With npm**
 - in command prompt or terminal
   ```npm
-  npm install my.vizui
+  npm install vizui
   ```
 - import in your project
   ```ts
-  import Vizui from "my.vizui";
+  import Vizui from "vizui";
   ```
 
 **using github package**
@@ -74,7 +74,7 @@ That's all for now, [NetFeez](https://NetFeez.github.io) signing off.
   ```
 - compile the project
   ```npm
-  npm run build
+  npm run compile
   ```
 - import in your project
   ```ts

@@ -1,7 +1,7 @@
 /**
  * @author NetFeez <netfeez.dev@gmail.com>.
  * @description Vizui is a module to create web applications SPA with js/ts.
- * @module my.vizui
+ * @module vizui
  * @license Apache-2.0
  */
 import Element from "../Element.js";
@@ -12,18 +12,17 @@ import AppComponent from "./AppComponent.js";
 
 export class App extends Events {
     private static instance: App;
+    public readonly root: Element<'div'>;
+    public readonly router: Router;
     private isInit: boolean = false;
-    private root: Element<'div'>;
     private renderRules: Rule[] = [];
-    public router: Router;
     private components: Map<string, AppComponent> = new Map();
     /**
      * Private constructor for the App class.
      * @param rootElement The root element of the application.
      * @param components The components of the application.
      */
-    private constructor(rootElement: string | HTMLDivElement | Element, components?: App.ComponentObject) { 
-        super();
+    private constructor(rootElement: string | HTMLDivElement | Element, components?: App.ComponentObject) {  super();
         if (rootElement instanceof Element) this.root = rootElement;
         else if (rootElement instanceof HTMLDivElement) this.root = new Element(rootElement);
         else if (typeof rootElement === 'string') {
@@ -106,9 +105,29 @@ export class App extends Events {
      * Render the root element of the application.
      * @param content The content to render.
      */
-    public renderRoot(...content: Element[]): void {
+    public renderRoot(...content: Element.ChildType[]): void {
         this.root.clean();
         this.root.append(...content);
+    }
+    /**
+     * Register a worker in the application.
+     * @param url The url of the worker.
+     * @param options The options of the worker.
+     * @returns The worker registration.
+     */
+    public async registerWorker(url: string, options: App.WorkerOptions): Promise<ServiceWorkerRegistration | null> {
+        if (!navigator.serviceWorker) return null;
+        try {
+            const registration = await navigator.serviceWorker.register(url, options);
+            if (registration.installing) console.log('[app]: worker installing: ', registration.installing);
+            else if (registration.waiting) console.log('[app]: worker waiting: ', registration.waiting);
+            else if (registration.active) console.log('[app]: worker active: ', registration.active);
+            else console.log('[app]: worker not registered');
+            return registration;
+        } catch (err) {
+            console.error('[App]: error registering worker: ', err);
+            return null;
+        }
     }
     /**
      * Initialize the application.
@@ -132,25 +151,18 @@ export class App extends Events {
         this.router.on('change', () => this.dispatch('render'));
         this.dispatch('render');
     }
-    /**
-     * Get the root element of the application.
-     * @returns The root element.
-     */
-    public getRoot(): Element<'div'> {
-        return this.root;
-    }
 
-    on(EventName: 'render', CallBack: Events.CallBack): void;
-    on(EventName: 'routing', CallBack: Events.CallBack): void;
-    on(EventName: 'routed', CallBack: App.routedCallBack): void;
-    on(EventName: string, CallBack: Events.CallBack): void {
-        super.on(EventName, CallBack);
+    on(name: 'render', listener: Events.Listener): void;
+    on(name: 'routing', listener: Events.Listener): void;
+    on(name: 'routed', listener: App.routedCallBack): void;
+    on(name: string, listener: Events.Listener): void {
+        super.on(name, listener);
     }
-    off(EventName: 'render', CallBack: Events.CallBack): void;
-    off(EventName: 'routing', CallBack: Events.CallBack): void;
-    off(EventName: 'routed', CallBack: App.routedCallBack): void;
-    off(EventName: string, CallBack: Events.CallBack): void {
-        super.off(EventName, CallBack);
+    off(name: 'render', listener: Events.Listener): void;
+    off(name: 'routing', listener: Events.Listener): void;
+    off(name: 'routed', listener: App.routedCallBack): void;
+    off(name: string, listener: Events.Listener): void {
+        super.off(name, listener);
     }
 }
 
@@ -164,5 +176,10 @@ export namespace App {
     export interface ComponentObject {
         [key: string]: AppComponent;
     };
+    export interface WorkerOptions {
+        type?: 'module' | 'classic';
+        scope?: string;
+        updateViaCache?: 'all' | 'imports' | 'none';
+    }
 }
 export default App;

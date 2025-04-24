@@ -1,7 +1,7 @@
 /**
  * @author NetFeez <netfeez.dev@gmail.com>.
  * @description add ajax utilities to vizui.
- * @module my.vizui
+ * @module vizui
  * @license Apache-2.0
  */
 export namespace Ajax {
