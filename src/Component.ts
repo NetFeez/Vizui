@@ -32,6 +32,15 @@ export abstract class Component<T extends keyof Element.Type> extends Events {
         this.component.appendTo(parent);
         return this;
     }
+    /**
+     * Replace this component for other component/element.
+     * @param element - The new element.
+     * @returns This component.
+     */
+    public replaceWith(element: Element.ChildType): this {
+        this.component.replaceWith(element);
+        return this;
+    }
 }
 
 export default Component
