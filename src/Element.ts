@@ -118,6 +118,34 @@ export class Element<T extends keyof Element.Type = any> {
     public set id(value: string) {
         this.HTMLElement.id = value;
     }
+    
+    /**
+     * gets the text content of the element.
+     * @returns The text content of the element.
+     */
+    public get text(): string {
+        return this.HTMLElement.innerText;
+    }
+    /**
+     * sets the text content of the element.
+     */
+    public set text(text: string) {
+        this.HTMLElement.innerText = text;
+    }
+    /**
+     * gets the html content of the element.
+     * @returns The html content of the element.
+     */
+    public get html(): string {
+        return this.HTMLElement.innerHTML;
+    }
+    /**
+     * Sets the html content of the element.
+     * @param html The html to set.
+     */
+    public set html(html: string) {
+        this.HTMLElement.innerHTML = html;
+    }
     /**
      * Check if the element contains the child.
      * @param element The element to check.
@@ -280,22 +308,6 @@ export class Element<T extends keyof Element.Type = any> {
         return this;
     }
     /**
-     * Sets the text content of the element.
-     * @param text The text to set.
-     */
-    public text(text: string): Element<T> {
-        this.HTMLElement.innerText = text;
-        return this;
-    }
-    /**
-     * Sets the html content of the element.
-     * @param html The html to set.
-     */
-    public html(html: string): Element<T> {
-        this.HTMLElement.innerHTML = html;
-        return this;
-    }
-        /**
      * Clears the element.
      * - that will be remove the children and the text.
      * @returns The element.
@@ -324,7 +336,7 @@ export class Element<T extends keyof Element.Type = any> {
      */
     public static new<T extends keyof Element.Type>(type: T, text?: string | null, attribs?: Element.Attributes | null, events?: Partial<Element.Events> | null, childs?: Array<Element.ChildType> | null): Element<T> {
         let NewElement = new Element(document.createElement(type));
-        if (text) NewElement.html(text);
+        if (text) NewElement.html = text;
         if (attribs) NewElement.setAttributes(attribs);
         if (events) NewElement.addEvents(events);
         if (childs) NewElement.append(...childs);
