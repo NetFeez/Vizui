@@ -84,6 +84,41 @@ export class Element<T extends keyof Element.Type = any> {
         return this.HTMLElement.offsetWidth;
     }
     /**
+     * get the classList of the element.
+     * @returns The classList of the element.
+     */
+    public get classList(): DOMTokenList {
+        return this.HTMLElement.classList;
+    }
+    /**
+     * get the class of the element.
+     * @returns The class of the element.
+     */
+    public get class(): string {
+        return this.HTMLElement.className;
+    }
+    /**
+     * set the class of the element.
+     * @returns The class of the element.
+     */
+    public set class(value: string) {
+        this.HTMLElement.className = value;
+    }
+    /**
+     * get the id of the element.
+     * @returns The id of the element.
+     */
+    public get id(): string {
+        return this.HTMLElement.id;
+    }
+    /**
+     * set the id of the element.
+     * @returns The id of the element.
+     */
+    public set id(value: string) {
+        this.HTMLElement.id = value;
+    }
+    /**
      * Check if the element contains the child.
      * @param element The element to check.
      */
