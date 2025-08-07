@@ -105,6 +105,13 @@ export class Element<T extends keyof Element.Type = any> {
         this.HTMLElement.className = value;
     }
     /**
+     * get the style of the element.
+     * @returns The style of the element.
+     */
+    public get style(): CSSStyleDeclaration {
+        return this.HTMLElement.style;
+    }
+    /**
      * get the id of the element.
      * @returns The id of the element.
      */
