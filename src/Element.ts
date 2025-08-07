@@ -182,7 +182,19 @@ export class Element<T extends keyof Element.Type = any> {
         else throw new Error('the element is not a HTMLElement or Element or Component');
         return this;
     }
-
+    /**
+     * Removes one/multiple children from an element.
+     * @param childs The elements to be removed.
+     */
+    public removeChild(...childs: Element.AcceptedTypes[]): Element<T> {
+        for (let child of childs) {
+            if (child instanceof HTMLElement) this.HTMLElement.removeChild(child);
+            else if (child instanceof Element) this.removeChild(child.HTMLElement);
+            else if (child instanceof Component) this.removeChild(child.getComponent());
+            else throw new Error('the element is not a HTMLElement or Element or Component');
+        }
+        return this;
+    }
     /**
      * Clones this element.
      * @returns The cloned element.
