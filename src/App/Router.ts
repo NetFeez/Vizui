@@ -20,7 +20,7 @@ export class Router extends Events<Router.EventMap> {
             this.history = [];
             this.index = 0;
             this.history.push(this.getPage());
-            this.dispatch('change');
+            this.emit('change');
         });
     }
     /**
@@ -69,8 +69,8 @@ export class Router extends Events<Router.EventMap> {
         this.history = this.history.slice(0, this.index + 1);
         this.history.push(this.getPage());
         this.index = this.history.length - 1;
-        this.dispatch('push');
-        this.dispatch('change'); 
+        this.emit('push');
+        this.emit('change'); 
     }
     /**
      * Goes back to the previous page.
@@ -82,8 +82,8 @@ export class Router extends Events<Router.EventMap> {
         if (previousPage === this.getPage()) return;
         const newUrl = new URL(previousPage, window.location.origin);
         window.history.pushState(null, '', newUrl);
-        this.dispatch('back');
-        this.dispatch('change');
+        this.emit('back');
+        this.emit('change');
     }
     /**
      * Goes to the next page.
@@ -95,8 +95,8 @@ export class Router extends Events<Router.EventMap> {
         if (nextPage === this.getPage()) return;
         const newUrl = new URL(nextPage, window.location.origin);
         window.history.pushState(null, '', newUrl);
-        this.dispatch('next');
-        this.dispatch('change');
+        this.emit('next');
+        this.emit('change');
     }
 }
 

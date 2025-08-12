@@ -47,10 +47,10 @@ export class DomObserver<T extends Element> extends Events<{
         for (const mutation of mutations) {
             if (mutation.type !== 'childList') continue;
             if ([...mutation.addedNodes].some((node) => node.contains(this.element.HTMLElement))) {
-                this.dispatch('add', this.element);
+                this.emit('add', this.element);
             }
             if ([...mutation.removedNodes].some((node) => node.contains(this.element.HTMLElement))) {
-                this.dispatch('remove', this.element);
+                this.emit('remove', this.element);
             }
         }
     }
@@ -60,8 +60,8 @@ export class DomObserver<T extends Element> extends Events<{
     */
     private handleIntersection(entries: IntersectionObserverEntry[]) {
         for (const entry of entries) {
-            if (entry.isIntersecting) this.dispatch('visible', this.element);
-            else this.dispatch('hidden', this.element);
+            if (entry.isIntersecting) this.emit('visible', this.element);
+            else this.emit('hidden', this.element);
         }
     }
     /**

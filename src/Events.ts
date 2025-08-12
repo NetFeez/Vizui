@@ -66,7 +66,7 @@ export class Events<eventMap extends Events.EventMap = Events.EventMap> {
      * @param name The name of the event to execute.
      * @param args The arguments that will be passed to the callbacks.
      */
-    protected dispatch<E extends string & keyof eventMap>(name: E, ...args: Parameters<eventMap[E]>): void {
+    protected emit<E extends string & keyof eventMap>(name: E, ...args: Parameters<eventMap[E]>): void {
         const listeners = this.listeners[name];
         const onceListeners = this.onceListeners[name];
         if (listeners) listeners.forEach(listener => listener(...args));

@@ -136,20 +136,20 @@ export class App extends Events {
         if (this.isInit) return;
         this.isInit = true;
         this.on('render', () => {
-            this.dispatch('routing');
+            this.emit('routing');
             console.log('[app] >> rendering: ', this.router.getPage());
             let routed = false;
             for (const rule of this.renderRules) {
                 if (rule.test(this.router.getPage())) {
                     rule.exec(this);
-                    this.dispatch('routed', this.router.getPage());
+                    this.emit('routed', this.router.getPage());
                     routed = true; break
                 }
             }
             // if (!routed) this.content.render(Element.new('h1', `404 - "${this.router.getPage()}" not found`));
         });
-        this.router.on('change', () => this.dispatch('render'));
-        this.dispatch('render');
+        this.router.on('change', () => this.emit('render'));
+        this.emit('render');
     }
 
     on(name: 'render', listener: Events.Listener): void;
