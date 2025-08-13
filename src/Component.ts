@@ -41,6 +41,14 @@ export abstract class Component<T extends keyof Element.Type, eventMap extends E
         this.component.replaceWith(element);
         return this;
     }
+    /**
+     * Remove this component.
+     * @returns This component.
+     */
+    public remove(): this {
+        this.component.remove();
+        return this;
+    }
 }
 
 export default Component
