@@ -46,10 +46,10 @@ export class DomObserver<T extends Element> extends Events<{
     private handleMutation(mutations: MutationRecord[]) {
         for (const mutation of mutations) {
             if (mutation.type !== 'childList') continue;
-            if ([...mutation.addedNodes].some((node) => node.contains(this.element.HTMLElement))) {
+            if ([...mutation.addedNodes].some((node) => node.contains(this.element.root))) {
                 this.emit('add', this.element);
             }
-            if ([...mutation.removedNodes].some((node) => node.contains(this.element.HTMLElement))) {
+            if ([...mutation.removedNodes].some((node) => node.contains(this.element.root))) {
                 this.emit('remove', this.element);
             }
         }
@@ -92,7 +92,7 @@ export class DomObserver<T extends Element> extends Events<{
             }
         } else if (this.isIntersectionEvent(type)) {
             if (!this.intersection) this.intersection = new IntersectionObserver(this.handleIntersection.bind(this));
-            this.intersection.observe(this.element.HTMLElement);
+            this.intersection.observe(this.element.root);
         }
     }
     /**

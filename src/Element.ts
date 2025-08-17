@@ -17,14 +17,14 @@ export class Element<T extends keyof Element.Type = any> {
     /** The DomObserver for this element */
     public readonly observer: DomObserver<this>; 
     /** The main element */
-    public HTMLElement: Element.Type[T];
+    public root: Element.Type[T];
     /**
      * Creates a series of extended functions.
      * @param element The element with which the exemption will be made.
      */
     public constructor(element: Element.Type[T])  {
         if (!(element instanceof HTMLElement)) throw new Error('the element is not a HTMLElement');
-        this.HTMLElement = element;
+        this.root = element;
         this.observer = new DomObserver(this);
     }
     /**
@@ -32,141 +32,141 @@ export class Element<T extends keyof Element.Type = any> {
      * @returns The scroll height of the element.
      */
     public get scrollHeight(): number {
-        return this.HTMLElement.scrollHeight;
+        return this.root.scrollHeight;
     }
     /**
      * get the scroll width of the element.
      * @returns The scroll width of the element.
      */
     public get scrollWidth(): number {
-        return this.HTMLElement.scrollWidth;
+        return this.root.scrollWidth;
     }
     /**
      * get the scroll top of the element.
      * @returns The scroll top of the element.
     */
     public get scrollTop(): number {
-        return this.HTMLElement.scrollTop;
+        return this.root.scrollTop;
     }
     /**
      * set the scroll top of the element.
      * @returns The scroll top of the element.
     */
     public set scrollTop(value: number) {
-        this.HTMLElement.scrollTop = value;
+        this.root.scrollTop = value;
     }
     /**
      * get the client height of the element.
      * @returns The client height of the element.
      */
     public get clientHeight(): number {
-        return this.HTMLElement.clientHeight;
+        return this.root.clientHeight;
     }
     /**
      * get the client width of the element.
      * @returns The client width of the element.
      */
     public get clientWidth(): number {
-        return this.HTMLElement.clientWidth;
+        return this.root.clientWidth;
     }
     /**
      * get the offset height of the element.
      * @returns The offset height of the element.
      */
     public get offsetHeight(): number {
-        return this.HTMLElement.offsetHeight;
+        return this.root.offsetHeight;
     }
     /**
      * get the offset width of the element.
      * @returns The offset width of the element.
      */
     public get offsetWidth(): number {
-        return this.HTMLElement.offsetWidth;
+        return this.root.offsetWidth;
     }
     /**
      * get the classList of the element.
      * @returns The classList of the element.
      */
     public get classList(): DOMTokenList {
-        return this.HTMLElement.classList;
+        return this.root.classList;
     }
     /**
      * get the class of the element.
      * @returns The class of the element.
      */
     public get class(): string {
-        return this.HTMLElement.className;
+        return this.root.className;
     }
     /**
      * set the class of the element.
      * @returns The class of the element.
      */
     public set class(value: string) {
-        this.HTMLElement.className = value;
+        this.root.className = value;
     }
     /**
      * get the style of the element.
      * @returns The style of the element.
      */
     public get style(): CSSStyleDeclaration {
-        return this.HTMLElement.style;
+        return this.root.style;
     }
     /**
      * get the id of the element.
      * @returns The id of the element.
      */
     public get id(): string {
-        return this.HTMLElement.id;
+        return this.root.id;
     }
     /**
      * set the id of the element.
      * @returns The id of the element.
      */
     public set id(value: string) {
-        this.HTMLElement.id = value;
+        this.root.id = value;
     }
     /**
      * gets the text content of the element.
      * @returns The text content of the element.
      */
     public get text(): string {
-        return this.HTMLElement.innerText;
+        return this.root.innerText;
     }
     /**
      * sets the text content of the element.
      */
     public set text(text: string) {
-        this.HTMLElement.innerText = text;
+        this.root.innerText = text;
     }
     /**
      * gets the html content of the element.
      * @returns The html content of the element.
      */
     public get html(): string {
-        return this.HTMLElement.innerHTML;
+        return this.root.innerHTML;
     }
     /**
      * Sets the html content of the element.
      * @param html The html to set.
      */
     public set html(html: string) {
-        this.HTMLElement.innerHTML = html;
+        this.root.innerHTML = html;
     }
     /**
      * gets the value of the element.
      * @returns The value of the element.
      */
     public get isConnected(): boolean {
-        return this.HTMLElement.isConnected;
+        return this.root.isConnected;
     }
     /**
      * Check if the element contains the child.
      * @param element The element to check.
      */
     public contains(element: Element.AcceptedTypes): boolean {
-        if (element instanceof HTMLElement) return this.HTMLElement.contains(element);
-        else if (element instanceof Element) return this.HTMLElement.contains(element.HTMLElement);
-        else if (element instanceof Component) return this.HTMLElement.contains(element.element.HTMLElement);
+        if (element instanceof HTMLElement) return this.root.contains(element);
+        else if (element instanceof Element) return this.root.contains(element.root);
+        else if (element instanceof Component) return this.root.contains(element.element.root);
         else throw new Error('the element is not a HTMLElement or Element or Component.');
     }
     /**
@@ -175,8 +175,8 @@ export class Element<T extends keyof Element.Type = any> {
      */
     public append(...childs: Element.ChildType[]): Element<T>  {
         for (let child of childs) {
-            if (child instanceof HTMLElement) this.HTMLElement.appendChild(child);
-            else if (child instanceof Element) this.append(child.HTMLElement);
+            if (child instanceof HTMLElement) this.root.appendChild(child);
+            else if (child instanceof Element) this.append(child.root);
             else if (child instanceof Component) this.append(child.element);
             else if (child instanceof Object) this.append(Element.structure(child));
             else throw new Error('the element is not a HTMLElement or Element or Component');
@@ -188,8 +188,8 @@ export class Element<T extends keyof Element.Type = any> {
      * @param element The element that will replace this one.
      */
     public replaceWith(element: Element.ChildType): Element<T> {
-        if (element instanceof HTMLElement) this.HTMLElement.replaceWith(element);
-        else if (element instanceof Element) this.replaceWith(element.HTMLElement);
+        if (element instanceof HTMLElement) this.root.replaceWith(element);
+        else if (element instanceof Element) this.replaceWith(element.root);
         else if (element instanceof Component) this.replaceWith(element.element);
         else if (element instanceof Object) this.replaceWith(Element.structure(element));
         else throw new Error('the element is not a HTMLElement or Element or Component');
@@ -201,8 +201,8 @@ export class Element<T extends keyof Element.Type = any> {
      */
     public removeChild(...childs: Element.AcceptedTypes[]): Element<T> {
         for (let child of childs) {
-            if (child instanceof HTMLElement) this.HTMLElement.removeChild(child);
-            else if (child instanceof Element) this.removeChild(child.HTMLElement);
+            if (child instanceof HTMLElement) this.root.removeChild(child);
+            else if (child instanceof Element) this.removeChild(child.root);
             else if (child instanceof Component) this.removeChild(child.element);
             else throw new Error('the element is not a HTMLElement or Element or Component');
         }
@@ -213,7 +213,7 @@ export class Element<T extends keyof Element.Type = any> {
      * @returns The cloned element.
      */
     public clone(): Element<T> {
-        const newHtmlElement = this.HTMLElement.cloneNode(true) as Element.Type[T];
+        const newHtmlElement = this.root.cloneNode(true) as Element.Type[T];
         return new Element(newHtmlElement);
     }
     /**
@@ -221,7 +221,7 @@ export class Element<T extends keyof Element.Type = any> {
      * @returns The element that was removed.
      */
     public remove(): Element<T> {
-        this.HTMLElement.remove();
+        this.root.remove();
         return this;
     }
     /**
@@ -231,15 +231,15 @@ export class Element<T extends keyof Element.Type = any> {
      * @returns The animation.
      */
     public animate(keyframes: Keyframe[] | PropertyIndexedKeyframes, options?: KeyframeAnimationOptions | undefined): Animation {
-        return this.HTMLElement.animate(keyframes, options);
+        return this.root.animate(keyframes, options);
     }
     /**
      * Appends this element to a parent.
      * @param parent The parent to append this element.
      */
     public appendTo(parent: Element.parentType): Element<T> {
-        if (parent instanceof HTMLElement) parent.appendChild(this.HTMLElement);
-        else if (parent instanceof Element) parent.HTMLElement.appendChild(this.HTMLElement);
+        if (parent instanceof HTMLElement) parent.appendChild(this.root);
+        else if (parent instanceof Element) parent.root.appendChild(this.root);
         else throw new Error('the parent is not a HTMLElement or Element');
         return this;
     }
@@ -284,7 +284,7 @@ export class Element<T extends keyof Element.Type = any> {
      * @param option The options for the event listener.
      */
     public on<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], option?: Element.Events.Options): Element<T> {
-        this.HTMLElement.addEventListener(eventName, listener as EventListener, option);
+        this.root.addEventListener(eventName, listener as EventListener, option);
         return this;
     }
     /**
@@ -295,7 +295,7 @@ export class Element<T extends keyof Element.Type = any> {
      * @returns The current element instance to allow method chaining.
      */
     public off<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], option?: Element.Events.Options): Element<T> {
-        this.HTMLElement.removeEventListener(eventName, listener as EventListener, option);
+        this.root.removeEventListener(eventName, listener as EventListener, option);
         return this;
     }
     /**
@@ -304,7 +304,7 @@ export class Element<T extends keyof Element.Type = any> {
      * @param value The value of the attribute.
      */
     public setAttribute(name: string, value: string): Element<T> {
-        this.HTMLElement.setAttribute(name, value);
+        this.root.setAttribute(name, value);
         return this;
     }
     /**
@@ -312,7 +312,7 @@ export class Element<T extends keyof Element.Type = any> {
      * @param name The name of the attribute.
      */
     public getAttribute(name: string): string | null {
-        return this.HTMLElement.getAttribute(name);
+        return this.root.getAttribute(name);
     }
     /**
      * set multiple attributes on the element.
@@ -329,7 +329,7 @@ export class Element<T extends keyof Element.Type = any> {
      * @param name The name of the attribute to remove.
      */
     public removeAttribute(name: string): Element<T> {
-        this.HTMLElement.removeAttribute(name);
+        this.root.removeAttribute(name);
         return this;
     }
     /**
@@ -338,7 +338,7 @@ export class Element<T extends keyof Element.Type = any> {
      * @returns The element.
      */
     public clean(): Element<T> {
-        this.HTMLElement.innerText = '';
+        this.root.innerText = '';
         return this;
     }
     /**
