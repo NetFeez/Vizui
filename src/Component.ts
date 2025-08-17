@@ -8,16 +8,24 @@
 import Element from "./Element.js";
 import Events from "./Events.js";
 
-export abstract class Component<T extends keyof Element.Type, eventMap extends Events.EventMap = Events.EventMap> extends Events<eventMap> {
-    /**
-     * The component element.
-     */
-    protected abstract component: Element<T>;
-    /**
-     * Gets the component element.
-     * @returns The component element.
-     */
-    public getComponent(): Element<T> { return this.component };
+export abstract class Component<T extends keyof Element.Type, eventMap extends Events.EventMap = Events.EventMap> extends Events<eventMap> implements Component.Component<T> {
+    /** The root element. */
+    protected readonly abstract root: Element<T>;
+    // ReadOnly properties.
+    /** The component element. */
+    public get element(): Element<T> { return this.root; }
+    /** The component classList. */
+    public get classList(): DOMTokenList { return this.root.classList; }
+    /** The component style. */
+    public get style(): CSSStyleDeclaration { return this.root.style; }
+    /** If the component is connected to the DOM. */
+    public get isConnected(): boolean { return this.root.isConnected; }
+    // Properties.
+    public get class(): string { return this.root.class; }
+    public set class(value: string) { this.root.class = value; }
+    public get id(): string { return this.root.id; }
+    public set id(value: string) { this.root.id = value; }
+
     /**
      * Renders the component.
      * @param parent The parent element.
@@ -29,7 +37,7 @@ export abstract class Component<T extends keyof Element.Type, eventMap extends E
             if (parent instanceof Element) parent.clean();
             else parent.innerHTML = '';
         }
-        this.component.appendTo(parent);
+        this.root.appendTo(parent);
         return this;
     }
     /**
@@ -38,7 +46,7 @@ export abstract class Component<T extends keyof Element.Type, eventMap extends E
      * @returns This component.
      */
     public replaceWith(element: Element.ChildType): this {
-        this.component.replaceWith(element);
+        this.root.replaceWith(element);
         return this;
     }
     /**
@@ -46,9 +54,20 @@ export abstract class Component<T extends keyof Element.Type, eventMap extends E
      * @returns This component.
      */
     public remove(): this {
-        this.component.remove();
+        this.root.remove();
         return this;
     }
 }
-
+export namespace Component {
+    export interface Component<T extends keyof Element.Type> {
+        // readonly properties.
+        readonly element: Element<T>;
+        readonly classList: DOMTokenList;
+        readonly style: CSSStyleDeclaration;
+        readonly isConnected: boolean;
+        // properties.
+        class: string;
+        id: string;
+    }
+}
 export default Component
