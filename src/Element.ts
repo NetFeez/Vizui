@@ -125,7 +125,6 @@ export class Element<T extends keyof Element.Type = any> {
     public set id(value: string) {
         this.HTMLElement.id = value;
     }
-    
     /**
      * gets the text content of the element.
      * @returns The text content of the element.
@@ -154,13 +153,20 @@ export class Element<T extends keyof Element.Type = any> {
         this.HTMLElement.innerHTML = html;
     }
     /**
+     * gets the value of the element.
+     * @returns The value of the element.
+     */
+    public get isConnected(): boolean {
+        return this.HTMLElement.isConnected;
+    }
+    /**
      * Check if the element contains the child.
      * @param element The element to check.
      */
     public contains(element: Element.AcceptedTypes): boolean {
         if (element instanceof HTMLElement) return this.HTMLElement.contains(element);
         else if (element instanceof Element) return this.HTMLElement.contains(element.HTMLElement);
-        else if (element instanceof Component) return this.HTMLElement.contains(element.getComponent().HTMLElement);
+        else if (element instanceof Component) return this.HTMLElement.contains(element.element.HTMLElement);
         else throw new Error('the element is not a HTMLElement or Element or Component.');
     }
     /**
@@ -171,7 +177,7 @@ export class Element<T extends keyof Element.Type = any> {
         for (let child of childs) {
             if (child instanceof HTMLElement) this.HTMLElement.appendChild(child);
             else if (child instanceof Element) this.append(child.HTMLElement);
-            else if (child instanceof Component) this.append(child.getComponent());
+            else if (child instanceof Component) this.append(child.element);
             else if (child instanceof Object) this.append(Element.structure(child));
             else throw new Error('the element is not a HTMLElement or Element or Component');
         }
@@ -184,7 +190,7 @@ export class Element<T extends keyof Element.Type = any> {
     public replaceWith(element: Element.ChildType): Element<T> {
         if (element instanceof HTMLElement) this.HTMLElement.replaceWith(element);
         else if (element instanceof Element) this.replaceWith(element.HTMLElement);
-        else if (element instanceof Component) this.replaceWith(element.getComponent());
+        else if (element instanceof Component) this.replaceWith(element.element);
         else if (element instanceof Object) this.replaceWith(Element.structure(element));
         else throw new Error('the element is not a HTMLElement or Element or Component');
         return this;
@@ -197,7 +203,7 @@ export class Element<T extends keyof Element.Type = any> {
         for (let child of childs) {
             if (child instanceof HTMLElement) this.HTMLElement.removeChild(child);
             else if (child instanceof Element) this.removeChild(child.HTMLElement);
-            else if (child instanceof Component) this.removeChild(child.getComponent());
+            else if (child instanceof Component) this.removeChild(child.element);
             else throw new Error('the element is not a HTMLElement or Element or Component');
         }
         return this;
