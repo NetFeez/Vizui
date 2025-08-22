@@ -80,12 +80,18 @@ export class Events<eventMap extends Events.EventMap = Events.EventMap> {
      * @param name The name of the event.
      * @returns The number of callbacks of the event.
      */
-    protected eventCount(name: string): number {
+    public eventCount(name: string): number {
         const listenerCount = this.listeners[name]?.size ?? 0;
         const onceCount     = this.onceListeners[name]?.size ?? 0;
         return listenerCount + onceCount;
     }
 }
+export class PublicEmitter<eventMap extends Events.EventMap = Events.EventMap> extends Events<eventMap> {
+    public override emit<E extends string & keyof eventMap>(name: E, ...args: Parameters<eventMap[E]>): void {
+        super.emit(name, ...args);
+    }
+}
+
 export namespace Events {
     export type Listener = (...args: any[]) => void;
     export type ListenerList<eventMap extends EventMap> = {
