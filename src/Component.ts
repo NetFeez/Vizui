@@ -7,8 +7,11 @@
 
 import Element from "./Element.js";
 import Events from "./Events.js";
+import DynamicCSS from "./DynamicCSS.js";
 
 export abstract class Component<T extends keyof Element.Type, eventMap extends Events.EventMap = Events.EventMap> extends Events<eventMap> implements Component.Component<T> {
+    /** The dynamic css loader. */
+    protected static readonly css = DynamicCSS;
     /** The root element. */
     protected readonly abstract root: Element<T>;
     /** The component element. */
