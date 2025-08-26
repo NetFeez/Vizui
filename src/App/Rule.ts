@@ -30,10 +30,10 @@ export class Rule {
      * Executes the rule.
      * @param app The app.
      */
-    public exec(app: App) {
+    public async exec(app: App): Promise<void> {
         if (!this.testAuth()) return;
         const params = this.getParams(app.router.page);
-        this.renderExec(params, app);
+        await this.renderExec(params, app);
     }
     /**
      * Tests the rule.
@@ -45,8 +45,8 @@ export class Rule {
     /**
      * Tests the authentication.
      */
-    public testAuth(): boolean {
-        return !this.authExec || this.authExec();
+    public async testAuth(): Promise<boolean> {
+        return !this.authExec || await this.authExec();
     }
     /**
      * Gets the parameters from the url.
@@ -93,8 +93,8 @@ export namespace Rule {
     export interface ruleParams {
         [name: string]: string | undefined;
     }
-    export type authenticator = () => boolean;
-    export type renderer = (params: ruleParams, app: App) => void;
+    export type authenticator = () => boolean | Promise<boolean>;
+    export type renderer = (params: ruleParams, app: App) => void | Promise<void>;
 }
 
 export default Rule;
