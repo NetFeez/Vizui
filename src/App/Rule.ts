@@ -32,7 +32,7 @@ export class Rule {
      */
     public exec(app: App) {
         if (!this.testAuth()) return;
-        const params = this.getParams(app.router.getPage());
+        const params = this.getParams(app.router.page);
         this.renderExec(params, app);
     }
     /**
