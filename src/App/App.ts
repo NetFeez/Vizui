@@ -10,7 +10,7 @@ import Router from "./Router.js";
 import Rule from "./Rule.js";
 import AppComponent from "./AppComponent.js";
 
-export class App extends Events {
+export class App extends Events<App.eventMap> {
     private static instance: App;
     public readonly root: Element<'div'>;
     public readonly router: Router;
@@ -151,22 +151,14 @@ export class App extends Events {
         this.router.on('change', () => this.emit('render'));
         this.emit('render');
     }
-
-    on(name: 'render', listener: Events.Listener): void;
-    on(name: 'routing', listener: Events.Listener): void;
-    on(name: 'routed', listener: App.routedCallBack): void;
-    on(name: string, listener: Events.Listener): void {
-        super.on(name, listener);
-    }
-    off(name: 'render', listener: Events.Listener): void;
-    off(name: 'routing', listener: Events.Listener): void;
-    off(name: 'routed', listener: App.routedCallBack): void;
-    off(name: string, listener: Events.Listener): void {
-        super.off(name, listener);
-    }
 }
 
 export namespace App {
+    export type eventMap = {
+        render: Events.Listener;
+        routing: Events.Listener;
+        routed: App.routedCallBack;
+    }
     export type appRenderer = Rule.renderer;
     export type appAuthenticator = Rule.authenticator;
     export type routedCallBack = (page: string) => void;
