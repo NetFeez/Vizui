@@ -15,7 +15,6 @@ export class App extends Events<App.eventMap> {
     public readonly root: Element<'div'>;
     public readonly router: Router;
     private isInit: boolean = false;
-    private renderRules: Rule[] = [];
     private components: Map<string, AppComponent> = new Map();
     /**
      * Private constructor for the App class.
@@ -29,10 +28,10 @@ export class App extends Events<App.eventMap> {
             const root = Element.get(rootElement); Element.new('div', null, { id: 'root' });
             if (!root) throw new Error('root element not found');
             this.root = root;
-        } else throw new Error('rootElement must be a string an HTMLDivElement or an Element');
-        this.router = Router.getInstance();
+        } else throw new Error('[App] root must be a Element an string or HTMLDivElement');
+        this.router = new Router();
         if (components) this.components = new Map(Object.entries(components));
-        console.log('app root:', this.root);
+        console.log('[App] root', this.root);
     }
     /**
      * Get the instance of the App class.
@@ -45,24 +44,6 @@ export class App extends Events<App.eventMap> {
         if (!rootElement) throw new Error('rootElement is required to init App singleton');
         App.instance = new App(rootElement, components);
         return App.instance;
-    }
-    /**
-     * Add a render rule to the application.
-     * @param urlRule The url rule to match.
-     * @param renderExec The function to execute when the rule is matched.
-     * @param authExec The function to execute to check if the user is authenticated.
-     */
-    public addRender(urlRule: string, renderExec: Rule.renderer, authExec?: Rule.authenticator) {
-        if (this.isInit) throw new Error('[addRender]: App is already initialized');
-        this.renderRules.push(new Rule(urlRule, renderExec, authExec));
-    }
-    /**
-     * Delete a render rule from the application.
-     * @param urlRule The url rule to delete.
-     */
-    public delRender(urlRule: string) {
-        if (this.isInit) throw new Error('[delRender]: App is already initialized');
-        this.renderRules = this.renderRules.filter((rule) => rule.urlRule != urlRule);
     }
     /**
      * Set the components of the application.
@@ -119,10 +100,10 @@ export class App extends Events<App.eventMap> {
         if (!navigator.serviceWorker) return null;
         try {
             const registration = await navigator.serviceWorker.register(url, options);
-            if (registration.installing) console.log('[app]: worker installing: ', registration.installing);
-            else if (registration.waiting) console.log('[app]: worker waiting: ', registration.waiting);
-            else if (registration.active) console.log('[app]: worker active: ', registration.active);
-            else console.log('[app]: worker not registered');
+            if (registration.installing) console.log('[App]: worker installing: ', registration.installing);
+            else if (registration.waiting) console.log('[App]: worker waiting: ', registration.waiting);
+            else if (registration.active) console.log('[App]: worker active: ', registration.active);
+            else console.log('[App]: worker not registered');
             return registration;
         } catch (err) {
             console.error('[App]: error registering worker: ', err);
@@ -135,19 +116,7 @@ export class App extends Events<App.eventMap> {
     public init() {
         if (this.isInit) return;
         this.isInit = true;
-        this.on('render', () => {
-            this.emit('routing');
-            console.log('[app] >> rendering: ', this.router.page);
-            let routed = false;
-            for (const rule of this.renderRules) {
-                if (rule.test(this.router.page)) {
-                    rule.exec(this);
-                    this.emit('routed', this.router.page);
-                    routed = true; break
-                }
-            }
-            // if (!routed) this.content.render(Element.new('h1', `404 - "${this.router.page}" not found`));
-        });
+        this.on('render', this.router.renderManager.bind(this.router, this));
         this.router.on('change', () => this.emit('render'));
         this.emit('render');
     }

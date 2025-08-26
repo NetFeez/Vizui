@@ -5,16 +5,18 @@
  * @license Apache-2.0
  */
 
+import App from "Vizui.js";
 import Events from "../Events.js";
+import _Rule from "./Rule.js";
 
-export class Router extends Events<Router.EventMap> {
-    private static instance: Router;
+export class Router extends Events<Router.eventMap> {
+    private static history: string[] = [];
     private index: number = 0;
-    private history: string[] = [];
+    private rules: Router.Rule[] = [];
     /**
      * Creates an instance of Router.
     */
-    private constructor() { super();
+    public constructor() { super();
         this.history.push(this.page);
         window.addEventListener('popstate', (event) => {
             this.history = [];
@@ -23,13 +25,36 @@ export class Router extends Events<Router.EventMap> {
             this.emit('change');
         });
     }
+    private get history (): string[] { return Router.history; }
+    private set history (history: string[]) { Router.history = history; }
     /**
-     * Gets the instance of Router.
-     * @returns The instance of Router.
-    */
-    public static getInstance(): Router {
-        if (!Router.instance) Router.instance = new Router();
-        return Router.instance;
+     * Triggered when the router receives a request.
+     * @param app The app instance.
+     */
+    public async renderManager(app: App) {
+        const page = this.page;
+        const rule = this.rules.find((rule) => rule.test(page));
+        if (!rule) return void console.log(`[App] no rule found for: ${page}`);
+        if (!await rule.testAuth()) return void console.log(`[App] auth failed for: ${page}`);
+        try {
+            await rule.exec(app);
+            console.log(`[App] routed: ${page}`);
+        } catch (error) { console.error(`[App] error rendering: ${page}`, error); }
+    }
+    /**
+     * Add render rules to the router.
+     * @param rules The rules to add.
+     */
+    public addRules(rules: Router.Rule[]) { this.rules.push(...rules); }
+    /**
+     * Add a render rule to the router.
+     * @param urlRule The url rule to match.
+     * @param renderExec The function to execute when the rule is matched.
+     * @param authExec The function to execute to check if the user is authenticated.
+     */
+    public addRule(urlRule: string, renderExec: Router.Rule.renderer, authExec?: Router.Rule.authenticator) {
+        const rule = new Router.Rule(urlRule, renderExec, authExec);
+        this.rules.push(rule);
     }
     /**
      * Cleans the url.
@@ -61,9 +86,11 @@ export class Router extends Events<Router.EventMap> {
      * Sets the current page.
      * @param page The page to set.
     */
-    public set page(page: string) {
-
-    }
+    public set page(page: string) { this.set(page); }
+    /**
+     * Sets the current page.
+     * @param page The page to set.
+    */
     public set(page: string, change: boolean = true): void {
         page = this.cleanUrl(page);
         if (page === this.page) return;
@@ -104,7 +131,8 @@ export class Router extends Events<Router.EventMap> {
 }
 
 export namespace Router {
-    export type EventMap = {
+    export import Rule = _Rule;
+    export type eventMap = {
         [name in (
             'change' | 'push' | 'back' | 'next'
         )]: Events.Listener
