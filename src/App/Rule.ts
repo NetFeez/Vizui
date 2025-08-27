@@ -30,9 +30,9 @@ export class Rule {
      * Executes the rule.
      * @param app The app.
      */
-    public async exec(app: App): Promise<void> {
+    public async exec(app: App, url?: string): Promise<void> {
         if (!this.testAuth()) return;
-        const params = this.getParams(app.router.page);
+        const params = this.getParams(url ?? app.router.page);
         await this.renderExec(params, app);
     }
     /**
