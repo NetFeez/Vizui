@@ -9,6 +9,8 @@ import App from "./App.js";
 import Events from "../Events.js";
 import _Rule from "./Rule.js";
 
+export { default as Rule } from "./Rule.js";
+
 export class Router extends Events<Router.eventMap> {
     private static history: string[] = [];
     private index: number = 0;

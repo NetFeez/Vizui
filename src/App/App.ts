@@ -7,8 +7,9 @@
 import Element from "../Element.js";
 import Events from "../Events.js";
 import Router from "./Router.js";
-import Rule from "./Rule.js";
 import AppComponent from "./AppComponent.js";
+
+export { default as Router } from "./Router.js";
 
 export class App extends Events<App.eventMap> {
     private static instance: App;
@@ -128,8 +129,8 @@ export namespace App {
         routing: Events.Listener;
         routed: App.routedCallBack;
     }
-    export type appRenderer = Rule.renderer;
-    export type appAuthenticator = Rule.authenticator;
+    export type appRenderer = Router.Rule.renderer;
+    export type appAuthenticator = Router.Rule.authenticator;
     export type routedCallBack = (page: string) => void;
     export type ElementObject = {
         [key: string]: Element;
