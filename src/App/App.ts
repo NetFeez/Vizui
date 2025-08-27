@@ -6,7 +6,7 @@
  */
 import Element from "../Element.js";
 import Events from "../Events.js";
-import Router from "./Router.js";
+import _Router from "./Router.js";
 import AppComponent from "./AppComponent.js";
 
 export { default as Router } from "./Router.js";
@@ -14,7 +14,7 @@ export { default as Router } from "./Router.js";
 export class App extends Events<App.eventMap> {
     private static instance: App;
     public readonly root: Element<'div'>;
-    public readonly router: Router;
+    public readonly router: App.Router;
     private isInit: boolean = false;
     private components: Map<string, AppComponent> = new Map();
     /**
@@ -30,7 +30,7 @@ export class App extends Events<App.eventMap> {
             if (!root) throw new Error('root element not found');
             this.root = root;
         } else throw new Error('[App] root must be a Element an string or HTMLDivElement');
-        this.router = new Router();
+        this.router = new App.Router();
         if (components) this.components = new Map(Object.entries(components));
         console.log('[App] root', this.root);
     }
@@ -124,13 +124,14 @@ export class App extends Events<App.eventMap> {
 }
 
 export namespace App {
+    export import Router = _Router;
     export type eventMap = {
         render: Events.Listener;
         routing: Events.Listener;
         routed: App.routedCallBack;
     }
-    export type appRenderer = Router.Rule.renderer;
-    export type appAuthenticator = Router.Rule.authenticator;
+    export type appRenderer = App.Router.Rule.renderer;
+    export type appAuthenticator = App.Router.Rule.authenticator;
     export type routedCallBack = (page: string) => void;
     export type ElementObject = {
         [key: string]: Element;
