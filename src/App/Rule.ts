@@ -9,7 +9,7 @@ import App from './App.js';
 
 export class Rule {
     public urlRule: string;
-    private expression: RegExp;
+    public expression: RegExp;
     private authExec: Rule.authenticator;
     private renderExec: Rule.renderer;
     /**
@@ -54,8 +54,8 @@ export class Rule {
      */
     public getParams(url: string): Rule.ruleParams {
         const match = this.expression.exec(url);
-        if (!match) return {};
-        return {...match.groups};
+        if (!match || !match.groups) return {};
+        return { ...match.groups };
     }
     /**
      * Creates the expression.
@@ -63,29 +63,39 @@ export class Rule {
      */
     private createExpression(urlRule: string): RegExp {
         const validators = {
-            param: /^\$(?<param>.+)$/,
+            paramRequired: /^\$(?<param>.+)$/,
+            paramOptional: /^\$\?(?<param>.+)$/,
             escape: /\\(?![\$\[\]\*\+\?\.\(\)\{\}\^\|\-])|(?<!\\)[\$\[\]\*\+\?\.\(\)\{\}\^\|\-]/gi,
         };
         const zones = urlRule.split('/').slice(1);
-        let regExpString = '^';
+        let generated = '^';
+
         for (let index = 0; index < zones.length; index ++) {
             const zone = zones[index];
-            regExpString += '\/';
-            if (validators.param.test(zone)) {
-                const match = validators.param.exec(zone);
-                if (match && match.groups) {
-                    const param = match.groups['param']
-                        .replace(validators.escape, '');
-                    regExpString += `(?<${param}>[^\/]+?)`;
-                }
-            } else if (zone == '*') {
-                regExpString += index < (zones.length -1)
-                    ? '(?:[^\/]+)?'
-                    : '(?:.+)?';
-            } else regExpString += zone;
+
+            if (zone == '*') {
+                const isLast = (index + 1) == (zones.length - 1);
+                generated += isLast ? '(?:/[^/]+)' : '(?:/.+)?';
+                continue;
+            }
+
+            const optional = validators.paramOptional.exec(zone);
+            if (optional && optional.groups) {
+                const param = optional.groups['param'].replace(validators.escape, '');
+                generated += `(?:/(?<${param}>[^/]+))?`;
+                continue;
+            }
+
+            const required = validators.paramRequired.exec(zone);
+            if (required && required.groups) {
+                const param = required.groups['param'].replace(validators.escape, '');
+                generated += `/(?<${param}>[^/]+)`;
+                continue;
+            }
+
+            generated += `/${zone.replace(validators.escape, '')}`;
         }
-        regExpString += '\/?$';
-        return new RegExp(regExpString);;
+        return new RegExp(`${generated}/?$`);
     }
 }
 
