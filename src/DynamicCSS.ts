@@ -15,8 +15,8 @@ export class DynamicCSS {
 
         const link = Element.new('link', null, { rel: 'stylesheet', href: url });
         const promise = new Promise<boolean>(resolve => {
-            link.on('load', this.loadHandler.bind(this, url, resolve));
-            link.on('error', this.errorHandler.bind(this, url, resolve));
+            link.once('load', this.loadHandler.bind(this, url, resolve));
+            link.once('error', this.errorHandler.bind(this, url, resolve));
             link.appendTo(Element.head);
         });
 
