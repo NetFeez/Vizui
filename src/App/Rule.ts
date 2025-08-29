@@ -93,7 +93,7 @@ export class Rule {
                 continue;
             }
 
-            generated += `/${zone.replace(validators.escape, '')}`;
+            generated += `/${zone}`;
         }
         return new RegExp(`${generated}/?$`);
     }
