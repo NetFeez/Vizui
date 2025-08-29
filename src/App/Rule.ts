@@ -63,8 +63,8 @@ export class Rule {
      */
     private createExpression(urlRule: string): RegExp {
         const validators = {
-            paramRequired: /^\$(?<param>.+)$/,
-            paramOptional: /^\$\?(?<param>.+)$/,
+            paramRequired: /^\$(?<param>(?!\$).+)$/,
+            paramOptional: /^\$\?(?<param>(?!\$).+)$/,
             escape: /\\(?![\$\[\]\*\+\?\.\(\)\{\}\^\|\-])|(?<!\\)[\$\[\]\*\+\?\.\(\)\{\}\^\|\-]/gi,
         };
         const zones = urlRule.split('/').slice(1);
@@ -74,19 +74,19 @@ export class Rule {
             const zone = zones[index];
 
             if (zone == '*') {
-                const isLast = (index + 1) == (zones.length - 1);
-                generated += isLast ? '(?:/[^/]+)' : '(?:/.+)?';
+                const isLast = index == (zones.length - 1);
+                generated += isLast ? '(?<$surplus>/.+)?' : '(?:/[^/]+)';
                 continue;
             }
 
-            const optional = validators.paramOptional.exec(zone);
+            const optional = zone.match(validators.paramOptional);
             if (optional && optional.groups) {
                 const param = optional.groups['param'].replace(validators.escape, '');
                 generated += `(?:/(?<${param}>[^/]+))?`;
                 continue;
             }
 
-            const required = validators.paramRequired.exec(zone);
+            const required = zone.match(validators.paramRequired);
             if (required && required.groups) {
                 const param = required.groups['param'].replace(validators.escape, '');
                 generated += `/(?<${param}>[^/]+)`;
