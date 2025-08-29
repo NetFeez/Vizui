@@ -5,7 +5,6 @@
  * @license Apache-2.0
  */
 
-
 import Component from "./Component.js";
 import DomObserver from "./DomObserver.js";
 
@@ -252,7 +251,7 @@ export class Element<T extends keyof Element.Type = any> {
             const event = key as keyof Element.Events;
             const listener = events[event];
             if (!listener) throw new Error('the event no have a listener.');
-            this.addEventListener(event, listener);
+            this.on(event, listener);
         }
         return this;
     }
@@ -260,31 +259,21 @@ export class Element<T extends keyof Element.Type = any> {
      * Adds an event listener to the element.
      * @param eventName The name of the event to listen for.
      * @param listener The function to call when the event occurs.
-     * @param option The options for the event listener.
+     * @param options The options for the event listener.
      */
-    public addEventListener<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], option?: Element.Events.Options): Element<T> {
-        this.on(eventName, listener, option);
+    public on<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], options?: Element.Events.Options): Element<T> {
+        this.root.addEventListener(eventName, listener as EventListener, options);
         return this;
     }
     /**
-     * Removes a previously added event listener from the element.
-     * @param eventName - The name of the event whose listener should be removed.
-     * @param listener - The function to remove, which was previously added as a listener for the event.
-     * @param option - Optional configuration to match the options used when adding the event listener.
-     * @returns The current element instance to allow method chaining.
-     */
-    public removeEventListener<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], option?: Element.Events.Options): Element<T> {
-        this.off(eventName, listener as EventListener, option);
-        return this;
-    }
-    /**
-     * Adds an event listener to the element.
+     * Adds an once event listener to the element.
      * @param eventName The name of the event to listen for.
      * @param listener The function to call when the event occurs.
-     * @param option The options for the event listener.
+     * @param options The options for the event listener.
      */
-    public on<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], option?: Element.Events.Options): Element<T> {
-        this.root.addEventListener(eventName, listener as EventListener, option);
+    public once<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], options?: Element.Events.Options): Element<T> {
+        options = !options || typeof options === 'boolean' ? { once: true } : { ...options, once: true };
+        this.root.addEventListener(eventName, listener as EventListener, options);
         return this;
     }
     /**
@@ -298,6 +287,8 @@ export class Element<T extends keyof Element.Type = any> {
         this.root.removeEventListener(eventName, listener as EventListener, option);
         return this;
     }
+    public removeEventListener = this.off;
+    public addEventListener = this.on;
     /**
      * Sets an attribute on the element.
      * @param name The name of the attribute.
