@@ -236,9 +236,10 @@ export class Element<T extends keyof Element.Type = any> {
      * Appends this element to a parent.
      * @param parent The parent to append this element.
      */
-    public appendTo(parent: Element.parentType): Element<T> {
+    public appendTo(parent: Element.AcceptedTypes): Element<T> {
         if (parent instanceof HTMLElement) parent.appendChild(this.root);
         else if (parent instanceof Element) parent.root.appendChild(this.root);
+        else if (parent instanceof Component) parent.append(this.root);
         else throw new Error('the parent is not a HTMLElement or Element');
         return this;
     }
@@ -386,7 +387,6 @@ export namespace Element {
     };
     export type ChildType = Structure<keyof Element.Type> | Element<any> | Component<any> | HTMLElement;
     export type AcceptedTypes = Element<any> | Component<any> | HTMLElement;
-    export type parentType = Element<any> | HTMLElement;
     export type Structure<T extends keyof Element.Type> = {
         type: T;
         text?: string;
