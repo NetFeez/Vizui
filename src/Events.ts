@@ -33,9 +33,11 @@ export class Events<eventMap extends Events.EventMap = Events.EventMap> {
      * @param listener The callback of the event to remove.
      */
     public off<E extends string & keyof eventMap>(name: E, listener: eventMap[E]): void {
-        const listenerList = this.listeners[name];
-        if (!listenerList) return;
-        listenerList.delete(listener);
+        const list = this.listeners[name];
+        if (!list) return;
+    
+        list.delete(listener);
+        if (list.size === 0) delete this.listeners[name];
     }
     /**
      * Removes an once event from the EventManager.
@@ -43,9 +45,11 @@ export class Events<eventMap extends Events.EventMap = Events.EventMap> {
      * @param listener The callback of the event to remove.
      */
     public offOnce<E extends string & keyof eventMap>(name: E, listener: eventMap[E]): void {
-        const listenerList = this.onceListeners[name];
-        if (!listenerList) return;
-        listenerList.delete(listener);
+        const list = this.onceListeners[name];
+        if (!list) return;
+    
+        list.delete(listener);
+        if (list.size === 0) delete this.onceListeners[name];
     }
     /**
      * Removes all listeners from an event.
@@ -67,13 +71,17 @@ export class Events<eventMap extends Events.EventMap = Events.EventMap> {
      * @param args The arguments that will be passed to the callbacks.
      */
     protected emit<E extends string & keyof eventMap>(name: E, ...args: Parameters<eventMap[E]>): void {
-        const listeners = this.listeners[name];
-        const onceListeners = this.onceListeners[name];
-        if (listeners) listeners.forEach(listener => listener(...args));
-        if (onceListeners) onceListeners.forEach(listener => {
+        const persistent = this.listeners[name]
+            ? Array.from(this.listeners[name]!)
+            : undefined;
+        const once = this.onceListeners[name];
+        if (once) delete this.onceListeners[name];
+        if (persistent) for (const listener of persistent) {
             listener(...args);
-            onceListeners.delete(listener);
-        });
+        }
+        if (once) for (const listener of once) {
+            listener(...args);
+        }
     }
     /**
      * Returns the number of callbacks of an event.
