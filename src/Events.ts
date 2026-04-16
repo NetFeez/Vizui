@@ -1,28 +1,28 @@
 /**
- * @author NetFeez <netfeez.dev@gmail.com>.
+ * @author NetFeez <codefeez.dev@gmail.com>.
  * @description Adds a class that manages events.
- * @module vizui
+ * @module Vizui
  * @license Apache-2.0
  */
-export class Events<eventMap extends Events.EventMap = Events.EventMap> {
-    private listeners: Events.ListenerList<eventMap> = {};
-    private onceListeners: Events.ListenerList<eventMap> = {};
+export class Events<EventMap extends Events.EventMap = Events.EventMap> {
+    private listeners: Events.ListenerList<EventMap> = {};
+    private onceListeners: Events.ListenerList<EventMap> = {};
+    public get EventMap(): EventMap { return {} as any; }
     /**
      * Adds an event to the EventManager.
      * @param name The name of the event.
      * @param listener The callback that will be executed.
      */
-     public on<E extends string & keyof eventMap>(name: E, listener: eventMap[E]): void {
+    public on<E extends string & keyof EventMap>(name: E, listener: Events.Listener<EventMap[E]>): void {
         const listeners = this.listeners[name] ?? new Set();
         listeners.add(listener);
         this.listeners[name] = listeners;
     }
     /**
      * Adds an once event to the EventManager.
-     * @param name The name of the event.
-     * @param callback The callback that will be executed.
+     * @param name The name of the event.     * @param callback The callback that will be executed.
      */
-    public once<E extends string & keyof eventMap>(name: E, listener: eventMap[E]): void {
+    public once<E extends string & keyof EventMap>(name: E, listener: Events.Listener<EventMap[E]>): void {
         const listeners = this.onceListeners[name] ?? new Set();
         listeners.add(listener);
         this.onceListeners[name] = listeners;
@@ -32,7 +32,7 @@ export class Events<eventMap extends Events.EventMap = Events.EventMap> {
      * @param name The name of the event to remove.
      * @param listener The callback of the event to remove.
      */
-    public off<E extends string & keyof eventMap>(name: E, listener: eventMap[E]): void {
+    public off<E extends string & keyof EventMap>(name: E, listener: Events.Listener<EventMap[E]>): void {
         const list = this.listeners[name];
         if (!list) return;
     
@@ -44,7 +44,7 @@ export class Events<eventMap extends Events.EventMap = Events.EventMap> {
      * @param name The name of the event to remove.
      * @param listener The callback of the event to remove.
      */
-    public offOnce<E extends string & keyof eventMap>(name: E, listener: eventMap[E]): void {
+    public offOnce<E extends string & keyof EventMap>(name: E, listener: Events.Listener<EventMap[E]>): void {
         const list = this.onceListeners[name];
         if (!list) return;
     
@@ -70,7 +70,8 @@ export class Events<eventMap extends Events.EventMap = Events.EventMap> {
      * @param name The name of the event to execute.
      * @param args The arguments that will be passed to the callbacks.
      */
-    protected emit<E extends string & keyof eventMap>(name: E, ...args: Parameters<eventMap[E]>): void {
+    protected emit<E extends string & keyof EventMap>(...event: [name: E, ...args: EventMap[E]]): void {
+        const [name, ...args] = event;
         const persistent = this.listeners[name]
             ? Array.from(this.listeners[name]!)
             : undefined;
@@ -94,19 +95,21 @@ export class Events<eventMap extends Events.EventMap = Events.EventMap> {
         return listenerCount + onceCount;
     }
 }
-export class PublicEmitter<eventMap extends Events.EventMap = Events.EventMap> extends Events<eventMap> {
-    public override emit<E extends string & keyof eventMap>(name: E, ...args: Parameters<eventMap[E]>): void {
-        super.emit(name, ...args);
+export class PublicEmitter<EventMap extends Events.EventMap = Events.EventMap> extends Events<EventMap> {
+    public override emit<E extends string & keyof EventMap>(...event: [name: E, ...args: EventMap[E]]): void {
+        super.emit(...event);
     }
 }
 
 export namespace Events {
-    export type Listener = (...args: any[]) => void;
+    export type Listener<T extends any[]> = (...args: T) => void;
     export type ListenerList<eventMap extends EventMap> = {
-        [name in keyof eventMap]?: Set<eventMap[name]>;
+        [name in keyof eventMap]?: Set<
+            Listener<eventMap[name]>
+        >;
     }
     export interface EventMap {
-        [name: string]: Listener;
+        [name: string]: [...args: any[]];
     }
 }
 export default Events;
