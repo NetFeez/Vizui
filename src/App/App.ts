@@ -126,13 +126,12 @@ export class App extends Events<App.eventMap> {
 export namespace App {
     export import Router = _Router;
     export type eventMap = {
-        render: Events.Listener;
-        routing: Events.Listener;
-        routed: App.routedCallBack;
+        routed: [page: string];
+        render: [];
+        routing: [];
     }
     export type appRenderer = App.Router.Rule.renderer;
     export type appAuthenticator = App.Router.Rule.authenticator;
-    export type routedCallBack = (page: string) => void;
     export type ElementObject = {
         [key: string]: Element;
     }

@@ -9,7 +9,7 @@ import Element from "./Element.js";
 import Events from "./Events.js";
 
 export class DomObserver<T extends Element> extends Events<{
-    [name in DomObserver.Type]: DomObserver.Listener<T>
+    [name in DomObserver.Type]: DomObserver.Params<T>
 }> {
     public mutation: MutationObserver | null;
     public intersection: IntersectionObserver | null;
@@ -167,10 +167,14 @@ export class DomObserver<T extends Element> extends Events<{
 }
 
 export namespace DomObserver {
-    export type Listener<T> = (element: T) => void;
+    export type Listener<element extends Element> = (...args: Params<element>) => void;
+    export type Params<element extends Element> = [element: element];
+
     export type MutationType = 'add' | 'remove';
     export type IntersectionType = 'visible' | 'hidden';
+
     export type Type = MutationType | IntersectionType;
+
     export interface Rule<T extends Element> {
         type: Type;
         listener: Listener<T>;

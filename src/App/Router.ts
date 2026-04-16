@@ -137,7 +137,7 @@ export namespace Router {
     export type eventMap = {
         [name in (
             'change' | 'push' | 'back' | 'next'
-        )]: Events.Listener
+        )]: []
     }
 }
 
