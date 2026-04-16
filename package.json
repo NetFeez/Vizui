@@ -5,9 +5,7 @@
   "main": "build/Vizui.js",
   "scripts": {
     "dev": "tsc --watch",
-    "compile": "rm -rf build && tsc",
-    "dev.publish": "npm run compile && npm publish --tag dev",
-    "publish": "npm run compile && npm publish"
+    "compile": "bash scripts/compile.sh"
   },
   "keywords": [
     "Vizui",
