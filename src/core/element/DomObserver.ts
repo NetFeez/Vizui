@@ -1,5 +1,5 @@
 /**
- * @author NetFeez <netfeez.dev@gmail.com>
+ * @author NetFeez <netfeez.dev@gmail.com>.
  * @description Observes mutation and intersection events on an element.
  * @license Apache-2.0
  */
@@ -9,15 +9,23 @@ import Events from '../../events/Events.js';
 export class DomObserver<T extends HTMLElement = HTMLElement> extends Events<{
     [name in DomObserver.Type]: DomObserver.Params<T>
 }> {
+    /** The mutation observer, when initialized. **/
     public mutation: MutationObserver | null;
+
+    /** The intersection observer, when initialized. **/
     public intersection: IntersectionObserver | null;
+
+    /**
+     * Creates an observer bound to a root element.
+     * @param root - The observed element.
+     */
     public constructor(
         public readonly root: T
     ) { super();
         this.mutation = null;
         this.intersection = null;
     }
-    
+
     /**
      * Counts the total of mutation event listeners.
      * @returns The number of mutation event listeners.
@@ -66,12 +74,14 @@ export class DomObserver<T extends HTMLElement = HTMLElement> extends Events<{
     /**
      * Checks whether the event type is a mutation event.
      * @param type - The type of event.
+     * @returns Whether the type belongs to the mutation channel.
      */
     private isMutationEvent(type: DomObserver.Type): boolean { return type === 'add' || type === 'remove'; }
 
     /**
      * Checks whether the event type is an intersection event.
      * @param type - The type of event.
+     * @returns Whether the type belongs to the intersection channel.
      */
     private isIntersectionEvent(type: DomObserver.Type): boolean { return type === 'visible' || type === 'hidden'; }
 
@@ -113,10 +123,12 @@ export class DomObserver<T extends HTMLElement = HTMLElement> extends Events<{
         super.on(type, listener);
         this.initObservers(type);
     }
+
     public override once(type: DomObserver.Type, listener: DomObserver.Listener<T>): void {
         super.once(type, listener);
         this.initObservers(type);
     }
+
     public override off(type: DomObserver.Type, listener: DomObserver.Listener<T>): void {
         super.off(type, listener);
         this.checkAndFinishObservers(type);
@@ -139,10 +151,19 @@ export class DomObserver<T extends HTMLElement = HTMLElement> extends Events<{
 }
 
 export namespace DomObserver {
+    /** The listener signature for every observed event. **/
     export type Listener<root extends HTMLElement> = (...args: Params<root>) => void;
+
+    /** The arguments delivered with every observed event. **/
     export type Params<root extends HTMLElement> = [root: root];
+
+    /** The mutation event types. **/
     export type MutationType = 'add' | 'remove';
+
+    /** The intersection event types. **/
     export type IntersectionType = 'visible' | 'hidden';
+
+    /** Every event type produced by the observer. **/
     export type Type = MutationType | IntersectionType;
 }
 export default DomObserver;

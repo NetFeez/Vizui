@@ -1,5 +1,5 @@
 /**
- * @author NetFeez <netfeez.dev@gmail.com>
+ * @author NetFeez <netfeez.dev@gmail.com>.
  * @description Typed reactive store with subscription and derived selection.
  * @license Apache-2.0
  */
@@ -7,18 +7,25 @@
 import { Events } from '../../events/Events.js';
 
 export class Store<State> extends Events<Store.EventMap<State>> {
+    /** The current state of the store. **/
     private vState: State;
+
+    /** Whether the store was destroyed and can no longer be used. **/
     private vDestroyed = false;
 
+    /**
+     * Creates a store holding an initial state.
+     * @param initialState - The initial state.
+     */
     public constructor(initialState: State) { super(); this.vState = initialState; }
 
-    /** The current state. */
+    /** The current state. **/
     public get state(): State { return this.vState; }
 
     /**
      * Sets a new state, notifying subscribers.
-     * @param state The new state.
-     * @returns This store.
+     * @param state - The new state.
+     * @returns This store, for chaining.
      */
     public set(state: State): this {
         this.assertNotDestroyed();
@@ -29,8 +36,8 @@ export class Store<State> extends Events<Store.EventMap<State>> {
 
     /**
      * Sets a new state only if it differs from the current state, notifying subscribers.
-     * @param state The new state.
-     * @returns This store.
+     * @param state - The action producing the new state from the previous one.
+     * @returns This store, for chaining.
      */
     public smartSet(state: Store.StateAction<State>): this {
         this.assertNotDestroyed();
@@ -41,8 +48,8 @@ export class Store<State> extends Events<Store.EventMap<State>> {
 
     /**
      * Updates the state with a deep partial patch, merging it into the current state.
-     * @param patch The partial state to merge.
-     * @returns This store.
+     * @param patch - The partial state to merge.
+     * @returns This store, for chaining.
      */
     public deepUpdate(patch: Store.DeepPartial<State>): this {
         this.assertNotDestroyed();
@@ -51,7 +58,7 @@ export class Store<State> extends Events<Store.EventMap<State>> {
 
     /**
      * Subscribes to state changes.
-     * @param listener The listener invoked with the new state.
+     * @param listener - The listener invoked with the new state.
      * @returns An unsubscribe function.
      */
     public subscribe(listener: Store.Listener<State>): Store.Unsubscribe {
@@ -62,8 +69,8 @@ export class Store<State> extends Events<Store.EventMap<State>> {
 
     /**
      * Derives a store that projects a slice of this store's state.
-     * @param selector The projection function.
-     * @param equal The equality function to determine if the selected value has changed.
+     * @param selector - The projection function.
+     * @param equal - The equality function to determine if the selected value has changed.
      * @returns A derived store.
      */
     public select<Selected>(selector: Store.Selector<State, Selected>, equal: Store.Equal<Selected> = Object.is): Store<Selected> {
@@ -79,7 +86,7 @@ export class Store<State> extends Events<Store.EventMap<State>> {
         return derived;
     }
 
-    /** Destroys this store, notifying subscribers and preventing further use. */
+    /** Destroys this store, notifying subscribers and preventing further use. **/
     public destroy(): void {
         if (this.vDestroyed) throw new Error('Store is already destroyed');
         this.vDestroyed = true;
@@ -88,21 +95,22 @@ export class Store<State> extends Events<Store.EventMap<State>> {
     }
 
     /**
-     * Asserts that this store is not destroyed, throwing an error if it is.
-     * @throws Error if the store is destroyed.
+     * Asserts that this store is not destroyed.
+     * @throws When the store is destroyed.
      */
     private assertNotDestroyed(): asserts this is Store<State> { if (this.vDestroyed) throw new Error('Store is destroyed'); }
 
     /**
      * Creates a store holding an initial state.
-     * @param initialState The initial state.
+     * @param initialState - The initial state.
      * @returns A new store.
      */
     public static create<State>(initialState: State): Store<State> { return new Store(initialState); }
+
     /**
      * Merges a deep partial source into a target without mutating either, producing a new value.
-     * @param target The value to merge into.
-     * @param source The partial patch to merge.
+     * @param target - The value to merge into.
+     * @param source - The partial patch to merge.
      * @returns The merged value.
      */
     private static deepMerge<Value>(target: Value, source: Store.DeepPartial<Value>): Value {
@@ -121,17 +129,33 @@ export class Store<State> extends Events<Store.EventMap<State>> {
 }
 
 export namespace Store {
+    /** The events emitted by a store. **/
     export type EventMap<State> = {
+        /** The state changed. **/
         change: [state: State];
+
+        /** The store was destroyed. **/
         destroy: [];
     };
+
+    /** A recursive partial of a value. **/
     export type DeepPartial<Value> = Value extends Function ? Value
         : Value extends object ? { [Key in keyof Value]?: DeepPartial<Value[Key]> }
         : Value;
+
+    /** The equality function used to compare derived values. **/
     export type Equal<State> = (a: State, b: State) => boolean;
+
+    /** The function returned by subscriptions to stop listening. **/
     export type Unsubscribe = () => void;
+
+    /** The projection of a store state into a slice. **/
     export type Selector<State, Selected> = (state: State) => Selected;
+
+    /** The listener notified on state changes. **/
     export type Listener<State> = (state: State) => void;
+
+    /** The action producing a new state from the previous one. **/
     export type StateAction<State> = (prev: State) => State;
 }
 export default Store;

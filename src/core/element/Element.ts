@@ -1,5 +1,5 @@
 /**
- * @author NetFeez <netfeez.dev@gmail.com>
+ * @author NetFeez <netfeez.dev@gmail.com>.
  * @description Wraps an HTMLElement with a fluent, typed API.
  * @license Apache-2.0
  */
@@ -8,68 +8,114 @@ import DomObserver from './DomObserver.js';
 import { APPENDABLE, ELEMENT } from '../symbols.js';
 
 export class Element<T extends HTMLElement = HTMLElement> implements Element.IsAppendable {
-    public static readonly body = document.body;
-    public static readonly head = document.head;
+    public static body = document.body;
+    public static head = document.head;
 
     public readonly [ELEMENT] = true;
     public readonly [APPENDABLE] = true;
 
+    /** The mutation/intersection observer bound to this element. **/
     public readonly observer: DomObserver<T>;
+
+    /** The wrapped HTMLElement. **/
     public readonly root: T;
 
+    /** Tracked listeners, so they can be torn down in bulk. **/
     private vListeners: Array<Element.Events.Entry> = [];
 
+    /**
+     * Wraps an existing HTMLElement.
+     * @param element - The element to wrap.
+     * @throws When the value is not an HTMLElement.
+     */
     public constructor(element: T) {
         if (!(element instanceof HTMLElement)) throw new Error('the element is not a HTMLElement');
         this.root = element;
         this.observer = new DomObserver(this.root);
     }
 
+    /** The scroll height of the element in pixels. **/
     public get scrollHeight(): number { return this.root.scrollHeight; }
+
+    /** The scroll width of the element in pixels. **/
     public get scrollWidth(): number { return this.root.scrollWidth; }
+
+    /** The vertical scroll position in pixels. **/
     public get scrollTop(): number { return this.root.scrollTop; }
+
+    /** The vertical scroll position in pixels. **/
     public set scrollTop(value: number) { this.root.scrollTop = value; }
+
+    /** The visible height of the element in pixels. **/
     public get clientHeight(): number { return this.root.clientHeight; }
+
+    /** The visible width of the element in pixels. **/
     public get clientWidth(): number { return this.root.clientWidth; }
+
+    /** The layout height of the element in pixels. **/
     public get offsetHeight(): number { return this.root.offsetHeight; }
+
+    /** The layout width of the element in pixels. **/
     public get offsetWidth(): number { return this.root.offsetWidth; }
+
+    /** The class list of the element. **/
     public get classList(): DOMTokenList { return this.root.classList; }
+
+    /** The class attribute of the element. **/
     public get class(): string { return this.root.className; }
+
+    /** The class attribute of the element. **/
     public set class(value: string) { this.root.className = value; }
+
+    /** The inline style declaration of the element. **/
     public get style(): CSSStyleDeclaration { return this.root.style; }
+
+    /** The id attribute of the element. **/
     public get id(): string { return this.root.id; }
+
+    /** The id attribute of the element. **/
     public set id(value: string) { this.root.id = value; }
 
+    /** The text content of the element. **/
     public get text(): string { return this.root.innerText; }
+
+    /** The text content of the element. **/
     public set text(text: string) { this.root.innerText = text; }
+
+    /** The HTML content of the element. **/
     public get html(): string { return this.root.innerHTML; }
+
+    /** The HTML content of the element. **/
     public set html(html: string) { this.root.innerHTML = html; }
+
+    /** Whether the element is attached to the document. **/
     public get isConnected(): boolean { return this.root.isConnected; }
 
     /**
      * Sets the text content of the element.
      * @param text - The text to set.
-     * @returns The element itself.
+     * @returns This element, for chaining.
      */
     public setText(text: string): this { this.root.innerText = text; return this; }
 
     /**
      * Sets the HTML content of the element.
      * @param html - The HTML to set.
-     * @returns The element itself.
+     * @returns This element, for chaining.
      */
     public setHtml(html: string): this { this.root.innerHTML = html; return this; }
-    
+
     /**
      * Removes this element from the DOM.
-     * @returns This element.
+     * @returns This element, for chaining.
      */
     public remove(): this { this.root.remove(); return this; }
 
     /**
-     * Animates this element.
-     * @param keyframes The keyframes of the animation.
-     * @param options The options of the animation.
+     * Animates the element with the Web Animations API.
+     * @param keyframes - The keyframes of the animation.
+     * @param options - The options of the animation.
+     * @returns The animation created for the element.
      */
     public animate(keyframes: Keyframe[] | PropertyIndexedKeyframes, options?: KeyframeAnimationOptions | undefined): Animation {
         return this.root.animate(keyframes, options);
@@ -78,11 +124,11 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
     /**
      * Appends one or more children to this element.
      * @param childList - The children to append.
-     * 
+     * @returns This element, for chaining.
+     *
      * @remarks
-     * This method will append the specified children to this element.
-     * The children can be HTMLElements, Elements, or Components.
-     * 
+     * The children can be HTMLElements, Elements or Components.
+     *
      * @example
      * ```ts
      * const div = Element.new('div');
@@ -99,10 +145,10 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
     /**
      * Appends this element to a parent.
      * @param parent - The parent to append to.
-     * 
+     * @returns This element, for chaining.
+     *
      * @remarks
-     * This method will append this element to the specified parent.
-     * The parent can be an HTMLElement, an Element, or a Component.
+     * The parent can be an HTMLElement, an Element or a Component.
      */
     public appendTo(parent: Element.ChildType): this {
         Element.append(parent, this.root);
@@ -112,12 +158,8 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
     /**
      * Replaces this element with another.
      * @param newElement - The element that will replace this one.
-     * @returns This element.
-     * 
-     * @remarks
-     * This method will replace this element with the specified new element.
-     * The new element can be an HTMLElement, an Element, or a Component.
-     * 
+     * @returns This element, for chaining.
+     *
      * @example
      * ```ts
      * const div = Element.new('div');
@@ -130,14 +172,12 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
         this.root.replaceWith(rawNewElement);
         return this;
     }
+
     /**
      * Removes one or more children from this element.
      * @param childList - The children to remove.
-     * 
-     * @remarks
-     * This method will remove the specified children from this element.
-     * The children can be HTMLElements, Elements, or Components.
-     * 
+     * @returns This element, for chaining.
+     *
      * @example
      * ```ts
      * const div = Element.new('div');
@@ -156,11 +196,10 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
      * Checks whether this element contains a given child.
      * @param child - The child to check.
      * @returns True if this element contains the child, false otherwise.
-     * 
+     *
      * @remarks
-     * This method will check whether this element contains the specified child.
-     * The child can be an HTMLElement, an Element, or a Component.
-     * 
+     * The child can be an HTMLElement, an Element or a Component.
+     *
      * @example
      * ```ts
      * const div = Element.new('div');
@@ -180,6 +219,7 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
      * @param eventName - The name of the event.
      * @param listener - The callback to execute.
      * @param options - The listener options.
+     * @returns This element, for chaining.
      */
     public on<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], options?: Element.Events.Options): this;
     public on(eventName: string, listener: EventListenerOrEventListenerObject, options?: Element.Events.Options): this;
@@ -188,12 +228,13 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
         this.vListeners.push({ eventName: eventName, listener: listener, options });
         return this;
     }
-    
+
     /**
      * Adds a one-time event listener to this element and tracks it for teardown.
      * @param eventName - The name of the event.
      * @param listener - The callback to execute.
      * @param options - The listener options.
+     * @returns This element, for chaining.
      */
     public once<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], options?: Element.Events.Options): this;
     public once(eventName: string, listener: EventListenerOrEventListenerObject, options?: Element.Events.Options): this;
@@ -209,6 +250,7 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
      * @param eventName - The name of the event.
      * @param listener - The listener to remove.
      * @param option - The options to match.
+     * @returns This element, for chaining.
      */
     public off<E extends keyof Element.Events>(eventName: E, listener: Element.Events[E], options?: Element.Events.Options): this;
     public off(eventName: string, listener: EventListenerOrEventListenerObject, options?: Element.Events.Options): this;
@@ -218,15 +260,18 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
         return this;
     }
 
+    /** Alias of {@link Element.off} for native call sites. **/
     public removeEventListener = this.off;
+
+    /** Alias of {@link Element.on} for native call sites. **/
     public addEventListener = this.on;
 
     /**
      * Removes all tracked event listeners registered on this element.
-     * @returns This element.
-     * 
+     * @returns This element, for chaining.
+     *
      * @remarks
-     * This will remove all the event listeners that have been added to this element.
+     * This removes every listener added through `on`/`once`, so teardown never leaks.
      */
     public unbindAll(): this {
         for (const { eventName, listener, options } of this.vListeners) this.root.removeEventListener(eventName, listener, options);
@@ -239,11 +284,11 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
      * Sets a single attribute.
      * @param name - The name of the attribute.
      * @param value - The value of the attribute.
-     * 
+     * @returns This element, for chaining.
+     *
      * @remarks
-     * This method will set the specified attribute on the element.
-     * If the attribute already exists, its value will be overwritten.
-     * If the attribute does not exist, it will be created.
+     * If the attribute already exists, its value is overwritten;
+     * if it does not exist, it is created.
      */
     public setAttribute(name: string, value: string): this {
         this.root.setAttribute(name, value);
@@ -254,21 +299,16 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
      * Gets the value of an attribute.
      * @param name - The name of the attribute.
      * @returns The value of the attribute, or null if it doesn't exist.
-     * 
-     * @remarks
-     * This method will return the value of the specified attribute on the element.
-     * If the attribute does not exist, it will return null.
      */
     public getAttribute(name: string): string | null { return this.root.getAttribute(name); }
 
     /**
      * Sets multiple attributes at once.
      * @param attributes - The attributes to set.
-     * 
+     * @returns This element, for chaining.
+     *
      * @remarks
-     * This method will set the specified attributes on the element.
-     * If an attribute already exists, its value will be overwritten.
-     * If an attribute does not exist, it will be created.
+     * Existing attributes are overwritten; missing ones are created.
      */
     public setAttributes(attributes: Element.Attributes): this {
         for (const [Attrib, value] of Object.entries(attributes)) this.setAttribute(Attrib, String(value));
@@ -277,23 +317,24 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
 
     /**
      * Removes one or more attributes from this element.
-     * @param names The names of the attributes to remove.
-     * 
+     * @param names - The names of the attributes to remove.
+     * @returns This element, for chaining.
+     *
      * @remarks
-     * This method will remove the specified attributes from the element.
-     * If an attribute does not exist, it will be ignored.
+     * Attributes that do not exist are ignored.
      */
     public removeAttribute(...names: string[]): this {
         for (const name of names) this.root.removeAttribute(name);
         return this;
     }
+
     /**
-     * Remove all the content of this element.
-     * @returns This element.
-     * 
+     * Removes all the content of this element.
+     * @returns This element, for chaining.
+     *
      * @remarks
-     * This will remove all the child nodes of this element, including text nodes and comment nodes.
-     * It will not remove the element itself.
+     * This removes every child node of the element, including text and comment
+     * nodes; the element itself is kept.
      */
     public clean(): this { this.root.innerText = ''; return this; }
 
@@ -301,7 +342,7 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
      * Gets an element from the DOM by selector.
      * @param selector - The selector to use.
      * @returns The element, or null if not found.
-     * 
+     *
      * @example
      * ```ts
      * const div = Element.get<HTMLDivElement>('div#my-div');
@@ -318,14 +359,14 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
      * @param tag - The type of element to create.
      * @param options - The options to apply to the element.
      * @returns The new element.
-     * 
+     *
      * @example
      * ```ts
      * const div = Element.new('div', { text: 'Hello, world!', attributes: { id: 'my-div', class: 'my-class', other: 'value' } });
      * // or you can do it like a semi-builder:
      * const div = Element.new('div')
      *     .setAttribute('id', 'my-div')
-     *     .setArrtributes({ class: 'my-class', other: 'value' })
+     *     .setAttributes({ class: 'my-class', other: 'value' })
      *     .setText('Hello, world!');
      * ```
      */
@@ -339,8 +380,8 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
     /**
      * Creates a new element from a structure.
      * @param structure - The structure of the element.
-     * 
-     * @deprecated Use Element.new instead.
+     * @returns The new element.
+     * @deprecated Use {@link Element.new} instead.
      */
     public static structure<T extends keyof Element.Type>(structure: Element.Structure<T>): Element<Element.Type[T]> {
         return this.new(structure.tag, { ...structure });
@@ -372,13 +413,13 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
      * @returns True if the object is an HTML element, false otherwise.
      */
     public static isHtmlElement(object: unknown): object is HTMLElement { return object instanceof HTMLElement; }
-    
+
     /**
      * Assigns creation options to an element.
      * @param element - The element to assign options to.
      * @param options - The options to assign.
-     * 
-     * @remarks This method is used internally by Element.new and Element.from.
+     *
+     * @remarks Used internally by {@link Element.new}.
      */
     private static assignCreationOptions<T extends HTMLElement>(element: Element<T>, options: Element.CreationOptions): void {
         if (Object.keys(options).length === 0) return;
@@ -393,9 +434,8 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
      * Adds multiple event listeners to an element.
      * @param element - The element to add events to.
      * @param events - The events to add.
-     * 
-     * @remarks This method is used internally by Element.new and Element.from.
-     * It is not intended to be used directly.
+     *
+     * @remarks Used internally by {@link Element.new}; not intended for direct use.
      */
     private static addEvents<T extends HTMLElement>(element: Element<T>, events: Partial<Element.Events>): void;
     private static addEvents<T extends HTMLElement>(element: Element<T>, events: Partial<Element.Events.Generics>): void;
@@ -410,9 +450,8 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
      * Appends one or more children to a parent element.
      * @param parent - The parent element to append to.
      * @param childList - The children to append.
-     * 
-     * @remarks This method is used internally by Element.new and Element.from.
-     * It is not intended to be used directly.
+     *
+     * @remarks Used internally by `append`/`appendTo`; not intended for direct use.
      */
     private static append(parent: Element.ChildType, ...childList: Element.ChildType[]): void {
         const rawParent = this.getRawElement(parent);
@@ -423,9 +462,8 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
      * Gets the raw HTMLElement from an Element or Component.
      * @param element - The element or component to get the raw HTMLElement from.
      * @returns The raw HTMLElement.
-     * 
-     * @remarks This method is used internally by Element.appendTo and Element.replaceWith.
-     * It is not intended to be used directly.
+     *
+     * @remarks Used internally by the append/replace family; not intended for direct use.
      */
     private static getRawElement(element: Element.ChildType): HTMLElement {
         if (element instanceof HTMLElement) return element;
@@ -436,32 +474,42 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
 }
 
 export namespace Element {
+    /** The contract shared by everything that can receive appended children. **/
     export interface IsAppendable {
         readonly root: HTMLElement | Element<any>;
         readonly [APPENDABLE]: true;
     }
 
+    /** The typed event listener map of an HTMLElement. **/
     export type Events = { [Key in keyof HTMLElementEventMap]: (this: HTMLElement, event: HTMLElementEventMap[Key]) => void; };
     export namespace Events {
+        /** Untyped listeners keyed by arbitrary event names. **/
         export interface Generics { [key: string]: EventListenerOrEventListenerObject; }
+
+        /** A tracked listener, kept for bulk teardown. **/
         export interface Entry {
             eventName: string;
             listener: EventListenerOrEventListenerObject;
             options?: Element.Events.Options;
         }
+
+        /** The options accepted when binding a listener. **/
         export type Options = boolean | AddEventListenerOptions;
     }
 
+    /** Attribute values keyed by name. **/
     export interface Attributes { [key: string]: string | number | boolean; };
 
-    /** Maps a tag name to its concrete HTMLElement type. */
+    /** Maps a tag name to its concrete HTMLElement type. **/
     export type Type = HTMLElementTagNameMap;
 
+    /** The child kinds an element accepts: Elements, appendables or HTMLElements. **/
     export type ChildType =
         | Element<any>
         | IsAppendable
         | HTMLElement;
 
+    /** The options applied to an element at creation time. **/
     export interface CreationOptions {
         /**
          * The text content of the element.
@@ -469,22 +517,26 @@ export namespace Element {
          * @remarks If html is set, text will be ignored.
          */
         text?: string;
+
         /**
          * The HTML content of the element.
          * @default undefined
          * @remarks If html is set, text will be ignored.
          */
         html?: string;
+
         /**
          * The attributes to set on the element.
          * @default undefined
          */
         attributes?: Element.Attributes;
+
         /**
          * The events to add to the element.
          * @default undefined
          */
         events?: Partial<Element.Events>;
+
         /**
          * The children to append to the element.
          * @default undefined
@@ -492,6 +544,7 @@ export namespace Element {
         childList?: Array<Element.ChildType>;
     }
 
+    /** The deprecated structural declaration of an element. **/
     export interface Structure<T extends keyof Element.Type> extends CreationOptions {
         tag: T;
     };

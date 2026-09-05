@@ -1,5 +1,5 @@
 /**
- * @author NetFeez <netfeez.dev@gmail.com>
+ * @author NetFeez <netfeez.dev@gmail.com>.
  * @description Base class to create typed components with lifecycle and teardown.
  * @license Apache-2.0
  */
@@ -15,7 +15,7 @@ import { APPENDABLE, COMPONENT } from '../symbols.js';
  * @template E - The type of the root element of the component. Can be either
  * an HTMLElement type or an `Element.Type` key.
  * @template EventMap - The type of the event map for the component.
- * 
+ *
  * @example
  * ```ts
  * // Create a new component
@@ -63,22 +63,31 @@ export abstract class Component<
     E extends HTMLElement | keyof Element.Type = HTMLElement,
     EventMap extends Events.EventMap = Events.EventMap,
 > extends Events<EventMap> implements Element.IsAppendable, Component.Lifecycle {
+    /** The shared stylesheet loader available to subclasses. **/
     protected static readonly css = Css;
 
     public readonly [COMPONENT] = true;
     public readonly [APPENDABLE] = true;
+
+    /** The root element of the component. **/
     public readonly abstract root: Element<Component.ComponentElement<E>>;
 
+    /** Whether the root element is attached to the document. **/
     public get isConnected(): boolean { return this.root.isConnected; }
 
+    /** Called before the component is mounted into the DOM. **/
     public willMount?(): void | Promise<void>;
+
+    /** Called after the component is mounted into the DOM. **/
     public onMount?(): void | Promise<void>;
+
+    /** Called before the component is removed and its listeners torn down. **/
     public onUnmount?(): void | Promise<void>;
 
     /**
      * Appends one or more children to the component.
      * @param childList - The children to append.
-     * @returns This component.
+     * @returns This component, for chaining.
      */
     public append(...childList: Component.ChildType[]): this {
         if (childList.length === 0) return this;
@@ -90,9 +99,9 @@ export abstract class Component<
     }
 
     /**
-     * Appends and mounts the component into a parent.
+     * Appends and mounts the component into a parent, running the mount lifecycle.
      * @param parent - The parent to append to.
-     * @returns This component.
+     * @returns This component, for chaining.
      */
     public appendTo(parent: Element.ChildType): this {
         if (this.willMount) this.willMount();
@@ -102,9 +111,10 @@ export abstract class Component<
     }
 
     /**
-     * Replaces this component with another element/component.
-     * @param element - The new element.
-     * @returns This component.
+     * Replaces this component with another element or component, running the
+     * unmount lifecycle of this one and the mount lifecycle of the replacement.
+     * @param element - The element or component to mount in place of this one.
+     * @returns This component, for chaining.
      */
     public replaceWith(element: Component.ChildType): this {
         if (this.onUnmount) this.onUnmount();
@@ -117,9 +127,8 @@ export abstract class Component<
     }
 
     /**
-     * Unmounts the component, tearing down its listeners.
+     * Unmounts a component, tearing down its listeners.
      * @param component - The component to unmount.
-     * @returns This component.
      */
     public static unmount<T extends HTMLElement>(component: Component<T>): void {
         if (component.onUnmount) component.onUnmount();
@@ -128,19 +137,25 @@ export abstract class Component<
 }
 
 export namespace Component {
+    /** Normalizes the supported root element declarations to their HTMLElement type. **/
     export type ComponentElement<
         E extends HTMLElement | keyof Element.Type
     > = E extends HTMLElement
         ? E : E extends keyof Element.Type
         ? Element.Type[E] : never;
 
+    /** The child kinds a component accepts: other components, elements or HTMLElements. **/
     export type ChildType = Component | Element.ChildType;
+
+    /** The optional lifecycle hooks a component can implement. **/
     export interface Lifecycle {
-        /** Called before the component is mounted into the DOM. */
+        /** Called before the component is mounted into the DOM. **/
         willMount?(): void | Promise<void>;
-        /** Called after the component is mounted into the DOM. */
+
+        /** Called after the component is mounted into the DOM. **/
         onMount?(): void | Promise<void>;
-        /** Called before the component is removed and its listeners torn down. */
+
+        /** Called before the component is removed and its listeners torn down. **/
         onUnmount?(): void | Promise<void>;
     }
 }
