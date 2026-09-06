@@ -127,12 +127,22 @@ export abstract class Component<
     }
 
     /**
-     * Unmounts a component, tearing down its listeners.
-     * @param component - The component to unmount.
+     * Removes the component from the DOM and runs its unmount lifecycle.
+     * @returns This component, for chaining.
      */
-    public static unmount<T extends HTMLElement>(component: Component<T>): void {
+    public remove(): this {
+        this.root.remove();
+        return this;
+    }
+
+    /**
+     * Unmounts a component, running its unmount lifecycle and removing it from the DOM.
+     * @param component - The component to unmount.
+     * @returns void
+     */
+    public static unmount(component: Component<any>): void {
         if (component.onUnmount) component.onUnmount();
-        component.root.unbindAll();
+        component.root.remove();
     }
 }
 
