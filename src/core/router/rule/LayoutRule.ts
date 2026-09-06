@@ -17,6 +17,7 @@ import type Tracker from '../Tracker.js';
 import type Router from '../Router.js';
 
 import Component from '../../component/Component.js';
+import Layout from '../../component/Layout.js';
 
 import Rule from './Rule.js';
 
@@ -35,16 +36,18 @@ export class LayoutRule extends Rule<LayoutRule.Content> {
         super(template, content, pipeline);
     }
 
-    /** The optional selector that resolves the nested outlet inside the layout root. **/
-    public get outletSelector(): string | undefined { return this.vContent.outlet; }
+    /** The optional outlet of the layout: a selector, element or component. **/
+    public get outletSelector(): string | Element | Component | undefined {
+        return this.vContent.outlet;
+    }
 
     /**
      * Resolves the layout component instance, instantiating lazy factories.
      * @returns The resolved layout component.
      * @throws When the content does not produce a Component.
      */
-    public async resolve(): Promise<Component> {
-        const component = this.vContent.component;
+    public async resolve(): Promise<Component<any>> {
+        const component = this.vContent instanceof Layout ? this.vContent : this.vContent.component;
         const resolved = typeof component === 'function' ? await component() : component;
         if (!(resolved instanceof Component)) throw new Error(`[LayoutRule] Invalid layout for template "${this.vTemplate}": expected a Component, got ${typeof resolved}.`);
         return resolved;
@@ -61,13 +64,15 @@ export class LayoutRule extends Rule<LayoutRule.Content> {
 }
 
 export namespace LayoutRule {
+    export type Content = Layout | Configuration;
+
     /** The layout kinds a layout route accepts. **/
-    export interface Content {
+    export interface Configuration {
         /** The layout component, or a factory producing it. **/
         component: Component | (() => Component | Promise<Component>);
 
-        /** Selector of the child outlet element inside the layout root. **/
-        outlet?: string;
+        /** The layout outlet: a selector to resolve inside the root, or a direct element. **/
+        outlet?: string | Element | Component;
     }
 }
 

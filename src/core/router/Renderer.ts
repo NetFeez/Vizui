@@ -9,6 +9,7 @@
 
 import Element from '../element/Element.js';
 import Component from '../component/Component.js';
+import Layout from '../component/Layout.js';
 
 export interface Renderer {
     /** The root outlet of the renderer, when it owns one. **/
@@ -34,15 +35,19 @@ export interface Renderer {
      * state across nested navigations.
      * @param layout - The layout component.
      * @param outlet - The outlet the layout is mounted into.
-     * @param selector - Optional selector of the nested region inside the layout root.
+    * @param selector - Optional outlet of the nested region: a selector to resolve
+    * inside the layout root, a direct element or a component root.
      * @returns The child outlet element.
      */
-    layout(layout: Component, outlet: Element, selector?: string): Element;
+    layout(layout: Component, outlet: Element, selector?: string | Element | Component): Element;
 }
 
 export class DomRenderer implements Renderer {
     /** The components currently mounted, keyed by their outlet. **/
     protected vMounts = new WeakMap<Element, Component>();
+
+    /** Cached Element wrappers, keyed by their raw DOM node. **/
+    protected static vWrappers = new WeakMap<HTMLElement, Element>();
 
     /**
      * Creates a DOM renderer. Mounts are tracked per outlet in a WeakMap so
@@ -64,6 +69,18 @@ export class DomRenderer implements Renderer {
      */
     protected static widened<Specific extends HTMLElement>(element: Element<Specific>): Element {
         return element as unknown as Element;
+    }
+
+    /**
+     * Returns the singleton Element wrapper for a raw DOM node, so mount
+     * tracking stays stable when the same node is resolved repeatedly.
+     * @param node - The raw DOM node.
+     * @returns The cached wrapper, or a new one stored for later reuse.
+     */
+    protected static wrap(node: HTMLElement): Element {
+        let wrapper = DomRenderer.vWrappers.get(node);
+        if (!wrapper) { wrapper = new Element(node); DomRenderer.vWrappers.set(node, wrapper); }
+        return wrapper;
     }
 
     /**
@@ -98,10 +115,11 @@ export class DomRenderer implements Renderer {
      * its state across nested navigation`s.
      * @param layout - The layout component.
      * @param outlet - The outlet the layout is mounted into.
-     * @param selector - Optional selector of the nested region inside the layout root.
+     * @param selector - Optional outlet: a selector to resolve inside the layout
+     * root, a direct element, or none to fall back to the layout's own outlet.
      * @returns The child outlet element.
      */
-    public layout(layout: Component, outlet: Element, selector?: string): Element {
+    public layout(layout: Component, outlet: Element, selector?: string | Element | Component): Element {
         const mounted = this.vMounts.get(outlet);
         if (mounted !== layout) {
             if (mounted) {
@@ -111,8 +129,29 @@ export class DomRenderer implements Renderer {
             layout.appendTo(outlet);
             this.vMounts.set(outlet, layout);
         }
-        const region = selector ? this.resolve(layout.root, selector) : layout.root;
-        return this.childOutlet(region);
+        const region = this.region(layout, selector);
+        return selector !== undefined || layout instanceof Layout ? region : this.childOutlet(region);
+    }
+
+    /**
+     * Resolves the region where routed content mounts: an explicitly provided
+     * outlet element wins, then a selector inside the layout root, then the
+     * outlet the layout itself exposes, falling back to the layout root.
+     * @param layout - The mounted layout component.
+     * @param selector - The explicit outlet element or selector, if any.
+     * @returns The outlet region.
+     */
+    protected region(layout: Component, selector?: string | Element | Component): Element {
+        if (selector instanceof Component) return selector.root;
+        if (selector instanceof Element) return selector;
+        if (typeof selector === 'string' && selector) return this.resolve(layout.root, selector);
+        if (layout instanceof Layout) return this.asElement(layout.outlet);
+        return layout.root;
+    }
+
+    /** Converts a component outlet to the element it exposes. **/
+    protected asElement(outlet: Element | Component): Element {
+        return outlet instanceof Component ? outlet.root : outlet;
     }
 
     /**
@@ -126,7 +165,7 @@ export class DomRenderer implements Renderer {
         const outlet = Element.new('div');
         outlet.classList.add('router-outlet');
         region.append(outlet);
-        return outlet as unknown as Element;
+        return DomRenderer.wrap(outlet.root);
     }
 
     /**
@@ -136,7 +175,7 @@ export class DomRenderer implements Renderer {
      */
     protected child(region: Element): Element | null {
         const found = region.root.querySelector(':scope > .router-outlet');
-        return found ? new Element(found as HTMLElement) : null;
+        return found ? DomRenderer.wrap(found as HTMLElement) : null;
     }
 
     /**
@@ -149,7 +188,7 @@ export class DomRenderer implements Renderer {
     protected resolve(root: Element, selector: string): Element {
         const found = root.root.querySelector(selector);
         if (!found) throw new Error(`[DomRenderer] Outlet selector "${selector}" was not found inside the layout.`);
-        return new Element(found as HTMLElement);
+        return DomRenderer.wrap(found as HTMLElement);
     }
 }
 

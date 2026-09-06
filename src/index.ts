@@ -22,6 +22,7 @@ export { Events, EventsEmitter } from './events/index.js';
 export { Element } from './core/element/Element.js';
 export { DomObserver } from './core/element/DomObserver.js';
 export { Component } from './core/component/Component.js';
+export { Layout } from './core/component/Layout.js';
 export { View } from './core/component/View.js';
 export { Css } from './core/resource/Css.js';
 export { symbols } from './core/symbols.js';

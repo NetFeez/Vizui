@@ -15,14 +15,8 @@ export class LayoutManager {
     /** The layouts registered, in mount order. **/
     protected vLayouts: LayoutRule[] = [];
 
-    /** The layouts currently mounted, outermost first. **/
-    protected vChain: LayoutRule[] = [];
-
-    /** The components of the mounted layouts, in chain order. **/
-    protected vChainComponents: Component[] = [];
-
-    /** The outlets the mounted layouts are attached to, in chain order. **/
-    protected vChainOutlets: Element[] = [];
+    /** The mounted layouts and their render state, outermost first. **/
+    protected vChain: LayoutManager.MountedLayout[] = [];
 
     /** The registered layouts, sorted by template length. **/
     public get layouts(): LayoutRule[] { return [...this.vLayouts]; }
@@ -69,17 +63,17 @@ export class LayoutManager {
             this.teardown(index, renderer, fallback);
         }
         this.vChain = this.vChain.slice(0, common);
-        this.vChainComponents = this.vChainComponents.slice(0, common);
-        this.vChainOutlets = this.vChainOutlets.slice(0, common);
 
-        let target = common > 0 ? this.vChainOutlets[common - 1] : anchor;
+        let target = anchor;
+        if (common > 0) {
+            const mounted = this.vChain[common - 1];
+            target = renderer.layout(mounted.component, mounted.outlet, mounted.route.outletSelector);
+        }
         for (let index = common; index < chain.length; index++) {
             const layoutRoute = chain[index];
             const component = await layoutRoute.resolve();
             const parent = target;
-            this.vChain.push(layoutRoute);
-            this.vChainComponents.push(component);
-            this.vChainOutlets.push(parent);
+            this.vChain.push({ route: layoutRoute, component, outlet: parent });
             target = renderer.layout(component, parent, layoutRoute.outletSelector);
         }
         return target;
@@ -92,11 +86,9 @@ export class LayoutManager {
      * @param fallback - The outlet used when the level has no parent.
      */
     protected teardown(index: number, renderer: Renderer, fallback: Element): void {
+        const mounted = this.vChain[index];
         this.vChain.splice(index, 1);
-        this.vChainComponents.splice(index, 1);
-        this.vChainOutlets.splice(index, 1);
-        const outlet = this.vChainOutlets[index] ?? fallback;
-        renderer.unmount(outlet);
+        renderer.unmount(mounted?.outlet ?? fallback);
     }
 
     /**
@@ -105,13 +97,19 @@ export class LayoutManager {
      * @param next - The chain required by the navigation.
      * @returns The number of shared leading levels.
      */
-    protected commonDepth(previous: LayoutRule[], next: LayoutRule[]): number {
+    protected commonDepth(previous: LayoutManager.MountedLayout[], next: LayoutRule[]): number {
         let depth = 0;
-        while (depth < previous.length && depth < next.length && previous[depth] === next[depth]) depth++;
+        while (depth < previous.length && depth < next.length && previous[depth].route === next[depth]) depth++;
         return depth;
     }
 }
 
-export namespace LayoutManager { }
+export namespace LayoutManager {
+    export interface MountedLayout {
+        route: LayoutRule;
+        component: Component<any>;
+        outlet: Element;
+    }
+}
 
 export default LayoutManager;
