@@ -12,7 +12,7 @@ import Events from '../../events/Events.js';
  * @template T - The root element type of the view.
  * @template EventMap - The event map of the view.
  */
-export abstract class View<T extends HTMLElement = HTMLDivElement, eventMap extends Events.EventMap = Events.EventMap> extends Component<T, eventMap> {
+export abstract class View<T extends Component.Type = HTMLDivElement, eventMap extends Events.EventMap = Events.EventMap> extends Component<T, eventMap> {
     /**
      * Loads data for the view given a route entry. Optional when the route
      * declares its own loader through `ShowRule.load`.

@@ -16,7 +16,7 @@ import type Element from '../element/Element.js';
  * @template T - The root element type of the layout.
  * @template EventMap - The event map of the layout.
  */
-export abstract class Layout<T extends HTMLElement = HTMLDivElement, eventMap extends Events.EventMap = Events.EventMap> extends Component<T, eventMap> {
+export abstract class Layout<T extends Component.Type = HTMLDivElement, eventMap extends Events.EventMap = Events.EventMap> extends Component<T, eventMap> {
     /** The region inside the layout root where routed content mounts. **/
     public abstract readonly outlet: Element | Component;
 }

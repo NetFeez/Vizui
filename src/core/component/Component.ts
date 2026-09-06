@@ -147,9 +147,10 @@ export abstract class Component<
 }
 
 export namespace Component {
+    export type Type = keyof Element.Type | HTMLElement;
     /** Normalizes the supported root element declarations to their HTMLElement type. **/
     export type ComponentElement<
-        E extends HTMLElement | keyof Element.Type
+        E extends Component.Type
     > = E extends HTMLElement
         ? E : E extends keyof Element.Type
         ? Element.Type[E] : never;
