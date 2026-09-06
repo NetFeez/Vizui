@@ -289,12 +289,6 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
         return this;
     }
 
-    /** Alias of {@link Element.off} for native call sites. **/
-    public removeEventListener = this.off;
-
-    /** Alias of {@link Element.on} for native call sites. **/
-    public addEventListener = this.on;
-
     /**
      * Removes all tracked event listeners registered on this element.
      * @returns This element, for chaining.
