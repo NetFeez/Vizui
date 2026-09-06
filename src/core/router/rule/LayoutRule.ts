@@ -38,7 +38,8 @@ export class LayoutRule extends Rule<LayoutRule.Content> {
 
     /** The optional outlet of the layout: a selector, element or component. **/
     public get outletSelector(): string | Element | Component | undefined {
-        return this.vContent.outlet;
+        return this.vContent instanceof Layout || typeof this.vContent === 'function'
+            ? undefined : this.vContent.outlet;
     }
 
     /**
@@ -47,7 +48,10 @@ export class LayoutRule extends Rule<LayoutRule.Content> {
      * @throws When the content does not produce a Component.
      */
     public async resolve(): Promise<Component<any>> {
-        const component = this.vContent instanceof Layout ? this.vContent : this.vContent.component;
+        const content = this.vContent;
+        const component = content instanceof Layout
+            ? content
+            : typeof content === 'function' ? content() : content.component;
         const resolved = typeof component === 'function' ? await component() : component;
         if (!(resolved instanceof Component)) throw new Error(`[LayoutRule] Invalid layout for template "${this.vTemplate}": expected a Component, got ${typeof resolved}.`);
         return resolved;
@@ -64,14 +68,17 @@ export class LayoutRule extends Rule<LayoutRule.Content> {
 }
 
 export namespace LayoutRule {
-    export type Content = Layout | Configuration;
+    export type ComponentFactory = () => Component | Promise<Component>;
+    export type LayoutFactory = () => Layout | Promise<Layout>;
+
+    export type Content = Layout | Configuration | LayoutFactory | ComponentFactory;
 
     /** The layout kinds a layout route accepts. **/
     export interface Configuration {
         /** The layout component, or a factory producing it. **/
-        component: Component | (() => Component | Promise<Component>);
+        component: Component | LayoutFactory | ComponentFactory;
 
-        /** The layout outlet: a selector to resolve inside the root, or a direct element. **/
+        /** The layout outlet: a selector to resolve inside the root, or a direct element or component. **/
         outlet?: string | Element | Component;
     }
 }
