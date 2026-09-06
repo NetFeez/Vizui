@@ -106,6 +106,35 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
     public setHtml(html: string): this { this.root.innerHTML = html; return this; }
 
     /**
+     * Sets the class attribute of the element.
+     * @param className - The class to set.
+     * @returns This element, for chaining.
+     */
+    public setClass(className: string): this { this.root.className = className; return this; }
+
+    /**
+     * Adds one or more classes to the element.
+     * @param classList - The classes to add.
+     * @returns This element, for chaining.
+     */
+    public addClass(...classList: string[]): this { this.root.classList.add(...classList); return this; }
+
+    /**
+     * Removes one or more classes from the element.
+     * @param classList - The classes to remove.
+     * @returns This element, for chaining.
+     */
+    public removeClass(...classList: string[]): this { this.root.classList.remove(...classList); return this; }
+
+    /**
+     * Toggles a class on the element.
+     * @param className - The class to toggle.
+     * @param force - Whether to force the class on or off.
+     * @returns This element, for chaining.
+     */
+    public toggleClass(className: string, force?: boolean): this { this.root.classList.toggle(className, force); return this; }
+
+    /**
      * Removes this element from the DOM.
      * @returns This element, for chaining.
      */
