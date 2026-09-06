@@ -491,7 +491,7 @@ export class Element<T extends HTMLElement = HTMLElement> implements Element.IsA
     private static getRawElement(element: Element.ChildType): HTMLElement {
         if (element instanceof HTMLElement) return element;
         if (ELEMENT in element) return element.root;
-        if (APPENDABLE in element) return this.getRawElement(element.root);
+        if (APPENDABLE in element) return Element.getRawElement(element.root);
         throw new Error('the element is not a HTMLElement or Element or Component');
     }
 }
