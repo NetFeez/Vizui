@@ -8,6 +8,9 @@
 // ========== Core Symbols ==========
 //
 
+/** Marks an object as a Node. **/
+export const NODE = Symbol('vizui.node');
+
 /** Marks an object as appendable. **/
 export const APPENDABLE = Symbol('vizui.appendable');
 

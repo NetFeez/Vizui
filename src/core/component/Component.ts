@@ -5,6 +5,7 @@
  */
 
 import Element from '../element/Element.js';
+import Node from '../element/Node.js';
 import Events from '../../events/Events.js';
 import Css from '../resource/Css.js';
 
@@ -12,7 +13,7 @@ import { APPENDABLE, COMPONENT } from '../symbols.js';
 
 /**
  * Base class to create typed components with lifecycle and teardown.
- * @template E - The type of the root element of the component. Can be either
+ * @template T - The type of the root element of the component. Can be either
  * an HTMLElement type or an `Element.Type` key.
  * @template EventMap - The type of the event map for the component.
  *
@@ -60,9 +61,9 @@ import { APPENDABLE, COMPONENT } from '../symbols.js';
  */
 
 export abstract class Component<
-    E extends HTMLElement | keyof Element.Type = HTMLElement,
+    T extends HTMLElement | keyof Element.Type = HTMLElement,
     EventMap extends Events.EventMap = Events.EventMap,
-> extends Events<EventMap> implements Element.IsAppendable, Component.Lifecycle {
+> extends Events<EventMap> implements Node.IsAppendable, Component.Lifecycle {
     /** The shared stylesheet loader available to subclasses. **/
     protected static readonly css = Css;
 
@@ -70,7 +71,7 @@ export abstract class Component<
     public readonly [APPENDABLE] = true;
 
     /** The root element of the component. **/
-    public readonly abstract root: Element<Component.ComponentElement<E>>;
+    public readonly abstract root: Element<Component.ComponentElement<T>>;
 
     /** Whether the root element is attached to the document. **/
     public get isConnected(): boolean { return this.root.isConnected; }
@@ -131,6 +132,7 @@ export abstract class Component<
      * @returns This component, for chaining.
      */
     public remove(): this {
+        if (this.onUnmount) this.onUnmount();
         this.root.remove();
         return this;
     }
