@@ -4,20 +4,29 @@
  * @license Apache-2.0
  */
 
-import { Events } from '../../events/Events.js';
+import { EventsEmitter } from '../../events/Events.js';
 
-export class Store<State> extends Events<Store.EventMap<State>> {
+export class Store<State> implements Store.IsReadOnly<State> {
     /** The current state of the store. **/
     private vState: State;
+    private vEmitter: EventsEmitter<Store.EventMap<State>>;
 
     /** Whether the store was destroyed and can no longer be used. **/
     private vDestroyed = false;
 
+    /** Whether the store is an intermediate store. **/
+    private vIntermediate: boolean;
+
     /**
      * Creates a store holding an initial state.
      * @param initialState - The initial state.
+     * @param internal - Whether the store is an intermediate store.
      */
-    public constructor(initialState: State) { super(); this.vState = initialState; }
+    public constructor(initialState: State, internal: boolean = false) {
+        this.vState = initialState;
+        this.vIntermediate = internal;
+        this.vEmitter = new EventsEmitter();
+    }
 
     /** The current state. **/
     public get state(): State { return this.vState; }
@@ -29,8 +38,10 @@ export class Store<State> extends Events<Store.EventMap<State>> {
      */
     public set(state: State): this {
         this.assertNotDestroyed();
+        const last = this.vState;
         this.vState = state;
-        this.emit('change', this.vState);
+        if (!this.vIntermediate) this.vEmitter.emit('change', this.vState, last);
+        else this.vEmitter.emit('internal:change', this.vState, last);
         return this;
     }
 
@@ -63,8 +74,8 @@ export class Store<State> extends Events<Store.EventMap<State>> {
      */
     public subscribe(listener: Store.Listener<State>): Store.Unsubscribe {
         this.assertNotDestroyed();
-        this.on('change', listener);
-        return () => this.off('change', listener);
+        this.vEmitter.on('change', listener);
+        return () => this.vEmitter.off('change', listener);
     }
 
     /**
@@ -81,8 +92,35 @@ export class Store<State> extends Events<Store.EventMap<State>> {
             if (!equal(selected, derived.state)) derived.set(selected);
         }
         this.subscribe(handler);
-        this.once('destroy', () => derived.destroy());
-        derived.once('destroy', () => this.off('change', handler));
+        this.vEmitter.once('destroy', () => derived.destroy());
+        derived.vEmitter.once('destroy', () => this.vEmitter.off('change', handler));
+        return derived;
+    }
+
+    /**
+     * Creates a derived store that can update the parent store based on changes to the selected slice.
+     * @param selector - The projection function to select a slice of the state.
+     * @param updater - The function to update the parent state based on the selected slice.
+     * @param equal - The equality function to determine if the selected value has changed.
+     * @returns A derived store that can update the parent store.
+     */
+    public bind<Selected>(
+        selector: Store.Selector<State, Selected>,
+        updater: Store.Updater<State, Selected>,
+        equal: Store.Equal<Selected> = Object.is
+    ): Store<Selected> {
+        const derived = new Store<Selected>(selector(this.vState), true);
+        const parentHandler = (state: State): void => {
+            const selected = selector(state);
+            if (!equal(selected, derived.state)) derived.set(selected);
+        };
+        const derivedHandler = (selected: Selected): void => {
+            this.smartSet((state) => updater(selected, state));
+        };
+        this.subscribe(parentHandler);
+        derived.vEmitter.on('internal:change', derivedHandler);
+        this.vEmitter.once('destroy', () => derived.destroy());
+        derived.vEmitter.once('destroy', () => this.vEmitter.off('change', parentHandler));
         return derived;
     }
 
@@ -90,8 +128,9 @@ export class Store<State> extends Events<Store.EventMap<State>> {
     public destroy(): void {
         if (this.vDestroyed) throw new Error('Store is already destroyed');
         this.vDestroyed = true;
-        this.emit('destroy');
-        this.offAll('change');
+        this.vEmitter.emit('destroy');
+        this.vEmitter.offAll('change');
+        this.vEmitter.offAll('internal:change');
     }
 
     /**
@@ -132,11 +171,18 @@ export namespace Store {
     /** The events emitted by a store. **/
     export type EventMap<State> = {
         /** The state changed. **/
-        change: [state: State];
+        change: [state: State, last: State];
+        'internal:change': [state: State, last: State];
 
         /** The store was destroyed. **/
         destroy: [];
     };
+
+    export interface IsReadOnly<State> {
+        readonly state: State;
+        subscribe(listener: Store.Listener<State>): Store.Unsubscribe;
+        select<Selected>(selector: Store.Selector<State, Selected>, equal?: Store.Equal<Selected>): Store<Selected>;
+    }
 
     /** A recursive partial of a value. **/
     export type DeepPartial<Value> = Value extends Function ? Value
@@ -151,6 +197,8 @@ export namespace Store {
 
     /** The projection of a store state into a slice. **/
     export type Selector<State, Selected> = (state: State) => Selected;
+
+    export type Updater<State, Selected> = (selected: Selected, state: State) => State;
 
     /** The listener notified on state changes. **/
     export type Listener<State> = (state: State) => void;
