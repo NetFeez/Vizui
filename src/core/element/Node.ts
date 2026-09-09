@@ -8,42 +8,12 @@ import { NODE, APPENDABLE } from '../symbols.js';
 import EventTracker from './EventTracker.js';
 import Store from '../state/Store.js';
 
-const REACTIVITY = Symbol('reactive-references');
-const TRACKING = Symbol('tracker-references');
+const SUBSCRIPTION_MAP = Symbol('vizui.node/subscriptions');
+const TRACKER_MAP = Symbol('vizui.node/tracker');
 
 export class Node<T extends globalThis.Node = globalThis.Node> implements Node.IsAppendable {
-    private static [REACTIVITY]: Node.Storage.Reactivity = new WeakMap();
-    private static [TRACKING]: Node.Storage.Tracking = new WeakMap();
-
-    /**
-     * Gets the reactive map for a given DOM node, creating it if it doesn't exist.
-     * @param node - The DOM node to get the reactive map for.
-     * @returns A WeakMap that maps stores to their unsubscribe functions for the given node.
-     *
-     * @remarks
-     * This method is used internally to manage reactive bindings between stores and DOM nodes. It ensures that each DOM node has its own reactive map, allowing for proper cleanup of subscriptions when nodes are removed from the DOM.
-     */
-    private static reactiveStorage(node: globalThis.Node): Node.Storage.Reactivity.Entry {
-        const storage = Node[REACTIVITY];
-        let map = storage.get(node);
-        if (!map) storage.set(node, map = new WeakMap());
-        return map;
-    }
-
-    /**
-     * Gets the event tracker for a given DOM node, creating it if it doesn't exist.
-     * @param node - The DOM node to get the event tracker for.
-     * @returns An EventTracker instance that tracks event listeners for the given node.
-     *
-     * @remarks
-     * This method is used internally to manage event listeners attached to DOM nodes. It ensures that each DOM node has its own event tracker, allowing for proper cleanup of event listeners when nodes are removed from the DOM.
-     */
-    private static trackerStorage(node: globalThis.Node): Node.Storage.Tracking.Entry {
-        const storage = Node[TRACKING];
-        let tracker = storage.get(node);
-        if (!tracker) storage.set(node, tracker = new EventTracker());
-        return tracker;
-    }
+    private static [SUBSCRIPTION_MAP]: Node.Storage.Reactivity = new WeakMap();
+    private static [TRACKER_MAP]: Node.Storage.Tracking = new WeakMap();
 
     public readonly [APPENDABLE] = true;
     public readonly [NODE] = true;
@@ -52,10 +22,10 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
     public readonly root: T;
 
     /** The event tracker for this node. **/
-    private get tracker(): Node.Storage.Tracking.Entry { return Node.trackerStorage(this.root); }
+    private eventTracker: Node.Storage.Tracking.Entry;
 
     /** The reactive map for this node. **/
-    private get reactive():Node.Storage.Reactivity.Entry { return Node.reactiveStorage(this.root); }
+    private reactiveSubscriptions: Node.Storage.Reactivity.Entry;
 
     /**
      * Wraps an existing DOM node.
@@ -64,6 +34,14 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
     public constructor(node: T) {
         if (!Node.isNative(node)) throw new Error('the node is not a Node');
         this.root = node;
+
+        let tracker = Node[TRACKER_MAP].get(this.root);
+        if (!tracker) Node[TRACKER_MAP].set(this.root, tracker = new EventTracker());
+        this.eventTracker = tracker;
+
+        let reactive = Node[SUBSCRIPTION_MAP].get(this.root);
+        if (!reactive) Node[SUBSCRIPTION_MAP].set(this.root, reactive = new WeakMap());
+        this.reactiveSubscriptions = reactive;
     }
 
     /** Whether the node is attached to the document. **/
@@ -179,7 +157,7 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
      * @returns This node, for chaining.
      */
     public on(name: string, listener: EventListenerOrEventListenerObject, options?: EventTracker.Options): this {
-        this.tracker.add({ name: name, listener, options });
+        this.eventTracker.add({ name: name, listener, options });
         this.root.addEventListener(name, listener, options);
         return this;
     }
@@ -196,7 +174,7 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
             ? { once: true }
             : { ...options, once: true };
 
-        this.tracker.add({ name: name, listener, options: listenerOptions });
+        this.eventTracker.add({ name: name, listener, options: listenerOptions });
         this.root.addEventListener(name, listener, listenerOptions);
         return this;
     }
@@ -210,7 +188,7 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
      */
     public off(name: string, listener: EventListenerOrEventListenerObject, options?: EventTracker.Options): this {
         this.root.removeEventListener(name, listener, options);
-        this.tracker.delete({ name, listener, options });
+        this.eventTracker.delete({ name, listener, options });
         return this;
     }
 
@@ -220,7 +198,7 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
             : { ...options, once: true };
 
         this.root.removeEventListener(name, listener, listenerOptions);
-        this.tracker.delete({ name, listener, options: listenerOptions });
+        this.eventTracker.delete({ name, listener, options: listenerOptions });
         return this;
     }
 
@@ -232,8 +210,8 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
      * This removes every listener added through {@link on} or {@link once}.
      */
     public unbindAll(): this {
-        for (const entry of this.tracker.entries) this.root.removeEventListener(entry.name, entry.listener, entry.options);
-        this.tracker.delete();
+        for (const entry of this.eventTracker.entries) this.root.removeEventListener(entry.name, entry.listener, entry.options);
+        this.eventTracker.delete();
         return this;
     }
 
@@ -243,9 +221,9 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
      * @returns This node, for chaining.
      */
     public offReactive(store: Store<unknown>): this {
-        const unities = this.reactive.get(store);
+        const unities = this.reactiveSubscriptions.get(store);
         if (unities) unities.forEach((unsubscribe) => unsubscribe());
-        this.reactive.delete(store);
+        this.reactiveSubscriptions.delete(store);
         return this;
     }
 
@@ -276,9 +254,9 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
             if (replace) node = replace;
         }
         const unsubscribe = store.subscribe(handler);
-        const unities = this.reactive.get(store) ?? new Set();
+        const unities = this.reactiveSubscriptions.get(store) ?? new Set();
         unities.add(unsubscribe);
-        this.reactive.set(store, unities);
+        this.reactiveSubscriptions.set(store, unities);
         return node;
     }
 
