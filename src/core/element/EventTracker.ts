@@ -34,6 +34,15 @@ export class EventTracker {
     }
 
     /**
+     * Finds a tracked event listener entry that matches the provided filter.
+     * @param filter - The filter to match against.
+     * @returns The first matching event listener entry, or undefined if none found.
+     */
+    find(filter: Partial<EventTracker.Entry> = {}): EventTracker.Entry | undefined {
+        return this.listeners.find((entry) => EventTracker.matches(entry, filter));
+    }
+
+    /**
      * Checks whether two event listener entries match in terms of name, listener, and capture options.
      * @param entry - The event listener entry to check.
      * @param filter - The filter to match against.
@@ -60,6 +69,7 @@ export namespace EventTracker {
     export interface Entry {
         name: string;
         listener: EventListenerOrEventListenerObject;
+        wrapped?: EventListenerOrEventListenerObject;
         options?: Options;
     }
 

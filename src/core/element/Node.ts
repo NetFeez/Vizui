@@ -156,9 +156,10 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
      * @param options - The listener options.
      * @returns This node, for chaining.
      */
-    public on(name: string, listener: EventListenerOrEventListenerObject, options?: EventTracker.Options): this {
-        this.eventTracker.add({ name: name, listener, options });
-        this.root.addEventListener(name, listener, options);
+    public on(name: string, listener: Node.Listener<T>, options?: EventTracker.Options): this {
+        const wrapped = this.wrapListener(listener);
+        this.eventTracker.add({ name: name, listener, wrapped, options });
+        this.root.addEventListener(name, wrapped, options);
         return this;
     }
 
@@ -169,13 +170,14 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
      * @param options - The listener options.
      * @returns This node, for chaining.
      */
-    public once(name: string, listener: EventListenerOrEventListenerObject, options?: EventTracker.Options): this {
+    public once(name: string, listener: Node.Listener<T>, options?: EventTracker.Options): this {
         const listenerOptions: EventTracker.Options = !options || typeof options === 'boolean'
             ? { once: true }
             : { ...options, once: true };
 
-        this.eventTracker.add({ name: name, listener, options: listenerOptions });
-        this.root.addEventListener(name, listener, listenerOptions);
+        const wrapped = this.wrapListener(listener);
+        this.eventTracker.add({ name: name, listener, wrapped, options: listenerOptions });
+        this.root.addEventListener(name, wrapped, listenerOptions);
         return this;
     }
 
@@ -186,19 +188,26 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
      * @param options - The listener options.
      * @returns This node, for chaining.
      */
-    public off(name: string, listener: EventListenerOrEventListenerObject, options?: EventTracker.Options): this {
-        this.root.removeEventListener(name, listener, options);
-        this.eventTracker.delete({ name, listener, options });
+    public off(name: string, listener: Node.Listener<T>, options?: EventTracker.Options): this {
+        const entry = this.eventTracker.find({ name, listener, options });
+        if (!entry) return this;
+        this.root.removeEventListener(name, entry.wrapped || entry.listener, options);
+        this.eventTracker.delete(entry);
         return this;
     }
 
-    public offOnce(name: string, listener: EventListenerOrEventListenerObject, options?: EventTracker.Options): this {
+    /**
+     * Removes a previously added one-time event listener.
+     * @param name - The name of the event.
+     * @param listener - The listener to remove.
+     * @param options - The listener options.
+     * @returns This node, for chaining.
+     */
+    public offOnce(name: string, listener: Node.Listener<T>, options?: EventTracker.Options): this {
         const listenerOptions: EventTracker.Options = !options || typeof options === 'boolean'
             ? { once: true }
             : { ...options, once: true };
-
-        this.root.removeEventListener(name, listener, listenerOptions);
-        this.eventTracker.delete({ name, listener, options: listenerOptions });
+        this.off(name, listener, listenerOptions);
         return this;
     }
 
@@ -210,7 +219,7 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
      * This removes every listener added through {@link on} or {@link once}.
      */
     public unbindAll(): this {
-        for (const entry of this.eventTracker.entries) this.root.removeEventListener(entry.name, entry.listener, entry.options);
+        for (const entry of this.eventTracker.entries) this.root.removeEventListener(entry.name, entry.wrapped || entry.listener, entry.options);
         this.eventTracker.delete();
         return this;
     }
@@ -225,6 +234,18 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
         if (unities) unities.forEach((unsubscribe) => unsubscribe());
         this.reactiveSubscriptions.delete(store);
         return this;
+    }
+
+    /**
+     * Removes all reactive subscriptions from this node.
+     * @returns This node, for chaining.
+     */
+    private wrapListener(listener: Node.Listener<T>): Node.Listener<T> {
+    if (typeof listener === 'function') return (...args) => listener.call(this, ...args);
+        return {
+            ...listener,
+            handleEvent: (event) => listener.handleEvent.call(this, event)
+        };
     }
 
     /**
@@ -254,9 +275,9 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
             if (replace) node = replace;
         }
         const unsubscribe = store.subscribe(handler);
-        const unities = this.reactiveSubscriptions.get(store) ?? new Set();
-        unities.add(unsubscribe);
-        this.reactiveSubscriptions.set(store, unities);
+        let subscriptions = this.reactiveSubscriptions.get(store)
+        if (!subscriptions) this.reactiveSubscriptions.set(store, subscriptions = new Set());
+        subscriptions.add(unsubscribe);
         return node;
     }
 
@@ -316,7 +337,7 @@ export class Node<T extends globalThis.Node = globalThis.Node> implements Node.I
 }
 
 export namespace Node {
-    export import Events = EventTracker;
+    export import Tracker = EventTracker;
 
     export namespace Storage {
         export namespace Reactivity {
@@ -329,7 +350,16 @@ export namespace Node {
         export type Reactivity = WeakMap<globalThis.Node, Storage.Reactivity.Entry>;
         export type Tracking = WeakMap<globalThis.Node, Tracking.Entry>;
     }
-
+    export namespace Listener {
+        export interface Listener<T extends globalThis.Node = globalThis.Node> {
+            (this: Node<T>, event: Event): void;
+        }
+        export interface ListenerObject<T extends globalThis.Node = globalThis.Node> {
+            handleEvent: (this: Node<T>, event: Event) => void;
+        }
+    }
+    export type Listener<T extends globalThis.Node> = Listener.Listener<T> | Listener.ListenerObject<T>;
+    
     /** The contract shared by everything that can receive appended children. **/
     export interface IsAppendable {
         readonly [APPENDABLE]: true;

@@ -19,19 +19,20 @@ export { Config } from './core/Config.js';
  */
 export { Events, EventsEmitter } from './events/index.js';
 
-export { Element } from './core/element/Element.js';
 export { DomObserver } from './core/element/DomObserver.js';
+export { Element } from './core/element/Element.js';
+export { Node } from './core/element/Node.js';
+
 export { Component } from './core/component/Component.js';
 export { Layout } from './core/component/Layout.js';
 export { View } from './core/component/View.js';
-export { Css } from './core/resource/Css.js';
-export { symbols } from './core/symbols.js';
-export {
-    Router, Guard, History,
-    type Renderer
-} from './core/router/index.js';
-export { Store } from './core/state/Store.js';
+
 export { Context } from './core/state/Context.js';
+export { Store } from './core/state/Store.js';
+export { Css } from './core/resource/Css.js';
+
+export { symbols } from './core/symbols.js';
+export { Router, Guard, History } from './core/router/index.js';
 export { HttpClient, Request, Response, Body } from './core/network/http-client/HttpClient.js';
 export { NetworkError } from './core/network/http-client/NetworkError.js';
 export { Socket } from './core/network/Socket.js';

@@ -5,15 +5,26 @@
  */
 
 import { APPENDABLE } from '../symbols.js';
+
+import Events from '../../events/Events.js';
 import DomObserver from './DomObserver.js';
 import Node from './Node.js';
 
-export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
+const OBSERVER_MAP = Symbol('vizui.element/observer');
+const REACTIVE_MAP = Symbol('vizui.element/reactive');
+const ELEMENT_MANIPULATED = Symbol('vizui.element/manipulated-attributes');
+
+export class Element<T extends Element.ExtendedHtmlElement = HTMLElement> extends Node<T> {
+    public static [OBSERVER_MAP] = new WeakMap<HTMLElement, DomObserver<any>>();
+    public static [REACTIVE_MAP] = new WeakMap<HTMLElement, Events.Emitter<Element.ReactiveEvents>>();
+
     public static body = document.body;
     public static head = document.head;
 
     /** The mutation/intersection observer bound to this element. **/
     public readonly observer: DomObserver<T>;
+
+    private readonly vReactiveEmitter: Events.Emitter<Element.ReactiveEvents>;
 
     /**
      * Wraps an existing HTMLElement.
@@ -23,8 +34,24 @@ export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
     public constructor(element: T) {
         if (!(element instanceof HTMLElement)) throw new Error('the element is not a HTMLElement');
         super(element);
-        this.observer = new DomObserver(this.root);
+
+        let observer = Element[OBSERVER_MAP].get(this.root);
+        if (!observer) Element[OBSERVER_MAP].set(this.root, observer = new DomObserver(this.root));
+        this.observer = observer;
+
+        let reactivity = Element[REACTIVE_MAP].get(this.root);
+        if (!reactivity) Element[REACTIVE_MAP].set(this.root, reactivity = new Events.Emitter());
+        this.vReactiveEmitter = reactivity;
+
+        this.root[ELEMENT_MANIPULATED] = this.root.setAttribute
+        this.root.setAttribute = (name: string, value: string) => {
+            const last = this.root.getAttribute(name);
+            this.root[ELEMENT_MANIPULATED]!.call(this.root, name, value);
+            this.vReactiveEmitter.emit('attribute:changed', name, value, last);
+        };
     }
+
+    public get reactive(): Events<Element.ReactiveEvents> { return this.vReactiveEmitter; }
 
     /** The scroll height of the element in pixels. **/
     public get scrollHeight(): number { return this.root.scrollHeight; }
@@ -148,9 +175,9 @@ export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
      * @param options - The listener options.
      * @returns This element, for chaining.
      */
-    public override on<E extends keyof Element.Events>(name: E, listener: Element.Events[E], options?: Node.Events.Options): this;
-    public override on(name: string, listener: EventListenerOrEventListenerObject, options?: Node.Events.Options): this;
-    public override on(name: string, listener: EventListenerOrEventListenerObject, options?: Node.Events.Options): this {
+    public override on<E extends keyof Element.EventMap<T>>(name: E, listener: Element.EventMap<T>[E], options?: Node.Tracker.Options): this;
+    public override on(name: string, listener: Node.Listener<T>, options?: Node.Tracker.Options): this;
+    public override on(name: string, listener: Node.Listener<T>, options?: Node.Tracker.Options): this {
         return super.on(name, listener, options);
     }
 
@@ -161,9 +188,9 @@ export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
      * @param options - The listener options.
      * @returns This element, for chaining.
      */
-    public override once<E extends keyof Element.Events>(name: E, listener: Element.Events[E], options?: Node.Events.Options): this;
-    public override once(name: string, listener: EventListenerOrEventListenerObject, options?: Node.Events.Options): this;
-    public override once(name: string, listener: EventListenerOrEventListenerObject, options?: Node.Events.Options): this {
+    public override once<E extends keyof Element.EventMap<T>>(name: E, listener: Element.EventMap<T>[E], options?: Node.Tracker.Options): this;
+    public override once(name: string, listener: Node.Listener<T>, options?: Node.Tracker.Options): this;
+    public override once(name: string, listener: Node.Listener<T>, options?: Node.Tracker.Options): this {
         return super.once(name, listener, options);
     }
 
@@ -174,9 +201,9 @@ export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
      * @param options - The listener options.
      * @returns This element, for chaining.
      */
-    public override off<E extends keyof Element.Events>(name: E, listener: Element.Events[E], options?: Node.Events.Options): this;
-    public override off(name: string, listener: EventListenerOrEventListenerObject, options?: Node.Events.Options): this;
-    public override off(name: string, listener: EventListenerOrEventListenerObject, options?: Node.Events.Options): this {
+    public override off<E extends keyof Element.EventMap<T>>(name: E, listener: Element.EventMap<T>[E], options?: Node.Tracker.Options): this;
+    public override off(name: string, listener: Node.Listener<T>, options?: Node.Tracker.Options): this;
+    public override off(name: string, listener: Node.Listener<T>, options?: Node.Tracker.Options): this {
         return super.off(name, listener, options);
     }
 
@@ -209,7 +236,6 @@ export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
         for (const [name, value] of Object.entries(attributes)) {
             this.setAttribute(name, String(value));
         }
-
         return this;
     }
 
@@ -243,9 +269,7 @@ export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
      * const input = Element.get<HTMLInputElement>('input[name="my-input"]');
      * ```
      */
-    public static get<T extends HTMLElement = HTMLElement>(
-        selector: string
-    ): Element<T> | null {
+    public static get<T extends HTMLElement = HTMLElement>(selector: string): Element<T> | null {
         const selection = document.querySelector<T>(selector);
         return selection ? new Element(selection) : null;
     }
@@ -268,15 +292,10 @@ export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
      * });
      * ```
      */
-    public static new<T extends keyof Element.Type>(
-        tag: T,
-        options: Element.CreationOptions = {}
-    ): Element<Element.Type[T]> {
+    public static new<T extends keyof Element.Type>(tag: T, options: Element.CreationOptions<Element.Type[T]> = {}): Element<Element.Type[T]> {
         const root = document.createElement(tag);
         const element = new Element(root);
-
         this.assignCreationOptions(element, options);
-
         return element;
     }
 
@@ -286,9 +305,7 @@ export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
      * @returns The new element.
      * @deprecated Use {@link Element.new} instead.
      */
-    public static structure<T extends keyof Element.Type>(
-        structure: Element.Structure<T>
-    ): Element<Element.Type[T]> {
+    public static structure<T extends keyof Element.Type>(structure: Element.Structure<T>): Element<Element.Type[T]> {
         return this.new(structure.tag, { ...structure });
     }
 
@@ -320,10 +337,9 @@ export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
      */
     private static assignCreationOptions<T extends HTMLElement>(
         element: Element<T>,
-        options: Element.CreationOptions
+        options: Element.CreationOptions<T>
     ): void {
         if (Object.keys(options).length === 0) return;
-
         if (options.text !== undefined) element.text = options.text;
         if (options.html !== undefined) element.html = options.html;
         if (options.attributes) element.setAttributes(options.attributes);
@@ -339,23 +355,11 @@ export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
      * @remarks
      * Used internally by {@link Element.new}; not intended for direct use.
      */
-    private static addEvents<T extends HTMLElement>(
-        element: Element<T>,
-        events: Partial<Element.Events>
-    ): void;
-
-    private static addEvents<T extends HTMLElement>(
-        element: Element<T>,
-        events: Partial<Element.Events.Generics>
-    ): void;
-
-    private static addEvents<T extends HTMLElement>(
-        element: Element<T>,
-        events: Partial<Element.Events.Generics>
-    ): void {
+    private static addEvents<T extends HTMLElement>(element: Element<T>, events: Partial<Element.EventMap<T>>): void;
+    private static addEvents<T extends HTMLElement>(element: Element<T>, events: Partial<Element.EventMap.Generics<T>>): void;
+    private static addEvents<T extends HTMLElement>(element: Element<T>, events: Partial<Element.EventMap.Generics<T>>): void {
         for (const [name, listener] of Object.entries(events)) {
             if (!listener) throw new Error('the event has no listener.');
-
             element.on(name, listener);
         }
     }
@@ -366,12 +370,22 @@ export class Element<T extends HTMLElement = HTMLElement> extends Node<T> {
 }
 
 export namespace Element {
-    /** The typed event listener map of an HTMLElement. **/
-    export type Events = { [Key in keyof HTMLElementEventMap]: (this: HTMLElement, event: HTMLElementEventMap[Key]) => void; };
+    export interface ExtendedHtmlElement extends HTMLElement {
+        [ELEMENT_MANIPULATED]?: HTMLElement['setAttribute'];
+    }
 
-    export namespace Events {
+    /** Reactive event map */
+    export interface ReactiveEvents extends Events.EventMap {
+        'attribute:changed': [name: string, value: string | null, last: string | null];
+    }
+
+    /** The typed event listener map of an HTMLElement. **/
+    export type EventMap<T extends HTMLElement> = {
+        [Key in keyof HTMLElementEventMap]: (this: Element<T>, event: HTMLElementEventMap[Key]) => void;
+    };
+    export namespace EventMap {
         /** Untyped listeners keyed by arbitrary event names. **/
-        export interface Generics { [key: string]: EventListenerOrEventListenerObject; }
+        export interface Generics<T extends HTMLElement> { [key: string]: Node.Listener<T>; }
     }
 
     /** Attribute values keyed by name. **/
@@ -386,10 +400,10 @@ export namespace Element {
     }
 
     /** The children accepted by an Element. **/
-    export type ChildType = Node.ChildType;
+    export type ChildType = Node.NodeType;
 
     /** The options applied to an element at creation time. **/
-    export interface CreationOptions {
+    export interface CreationOptions<T extends HTMLElement> {
         /**
          * The text content of the element.
          * @default undefined
@@ -414,7 +428,7 @@ export namespace Element {
          * The events to add to the element.
          * @default undefined
          */
-        events?: Partial<Element.Events>;
+        events?: Partial<Element.EventMap<T>>;
 
         /**
          * The children to append to the element.
@@ -424,7 +438,7 @@ export namespace Element {
     }
 
     /** The deprecated structural declaration of an element. **/
-    export interface Structure<T extends keyof Element.Type> extends CreationOptions {
+    export interface Structure<T extends keyof Element.Type> extends CreationOptions<Element.Type[T]> {
         tag: T;
     }
 }
